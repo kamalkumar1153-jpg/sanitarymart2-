@@ -4,16 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sanitary Mart</title>
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Firebase SDKs (v8 compatibility mode) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
   <style>
-    /* Product title spacing & truncation */
     .product-title {
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      min-height: 2.6rem;
+      min-height: 2.5rem;
       color: #1f2937;
       font-weight: 700;
       font-size: 0.875rem;
@@ -36,7 +40,7 @@
     </div>
   </header>
 
-  <!-- Category Filter Tabs -->
+  <!-- Categories -->
   <div class="p-4 flex gap-2 overflow-x-auto scrollbar-none">
     <button class="bg-teal-700 text-white px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">All Products</button>
     <button class="bg-white border text-gray-700 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Taps & Faucets</button>
@@ -45,78 +49,76 @@
 
   <!-- Product Grid Container -->
   <main class="px-4">
-    <div id="product-grid" class="grid grid-cols-2 gap-3.5">
-      <!-- JavaScript Dynamic Render Area -->
+    <!-- Loading Message -->
+    <div id="loading" class="text-center py-10 text-gray-500 font-semibold">
+      Firebase se products load ho rahe hain...
+    </div>
+
+    <div id="product-grid" class="grid grid-cols-2 gap-3.5 hidden">
+      <!-- Firebase se dynamic products yahan render honge -->
     </div>
   </main>
 
   <!-- JavaScript Code -->
   <script>
-    // Database Products Data
-    const databaseProducts = [
-      {
-        id: "1",
-        title: "Edge One Piece Toilet Seat",
-        price: 20243,
-        originalPrice: 26990,
-        discount: "25% OFF",
-        image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400&auto=format&fit=crop&q=80"
-      },
-      {
-        id: "2",
-        name: "Sanitary Modern Western Closet",
-        price: 13293,
-        originalPrice: 18990,
-        discount: "30% OFF",
-        imageUrl: "https://images.unsplash.com/photo-1585058003661-383777096c42?w=400&auto=format&fit=crop&q=80"
-      },
-      {
-        id: "3",
-        productName: "Floor Mounted Water Closet...",
-        price: 15400,
-        originalPrice: 22000,
-        discount: "30% OFF",
-        img: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400&auto=format&fit=crop&q=80"
-      },
-      {
-        id: "4",
-        title: "Sanitary Product Item",
-        price: 18500,
-        originalPrice: 24000,
-        discount: "30% OFF",
-        image: "https://images.unsplash.com/photo-1585058003661-383777096c42?w=400&auto=format&fit=crop&q=80"
-      }
-    ];
+    // ⚠️ STEP 1: Apni Firebase Project Keys Yahan Badlein
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
 
-    // Default Fallback Image Link
-    const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400&auto=format&fit=crop&q=80";
+    // Firebase Initialize Karein
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-    function renderProducts(items) {
+    // STEP 2: Firebase Realtime Listener
+    // Apne node ka naam check karein: 'products', 'items', etc.
+    const productsRef = database.ref('products');
+
+    productsRef.on('value', (snapshot) => {
       const grid = document.getElementById("product-grid");
-      grid.innerHTML = "";
+      const loading = document.getElementById("loading");
 
-      items.forEach(item => {
-        // Name Fallbacks
-        const name = item.title || item.name || item.productName || item.product_name || "Sanitary Product Item";
+      grid.innerHTML = ""; // Clear loader/previous UI
+      loading.classList.add("hidden");
+      grid.classList.remove("hidden");
 
-        // Image Path/URL Fallbacks (No text/name shown for missing images)
-        const imgSrc = item.image || item.imageUrl || item.img || item.img_url || DEFAULT_IMAGE;
+      if (!snapshot.exists()) {
+        grid.innerHTML = `<div class="col-span-2 text-center py-8 text-gray-500">Koyi products nahi mile database me!</div>`;
+        return;
+      }
+
+      snapshot.forEach((childSnapshot) => {
+        const item = childSnapshot.val();
+
+        // Safe Name Fetching
+        const name = item.title || item.name || item.productName || item.product_name || "Sanitary Item";
+
+        // Safe Image Fetching (Aapke database me jo key ho: image, imageUrl, img, URL)
+        const imgSrc = item.image || item.imageUrl || item.img || item.url || "https://via.placeholder.com/300?text=No+Image";
 
         const cardHTML = `
           <div class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
             
-            <!-- Discount Tag -->
-            <span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded z-10">
-              ${item.discount || '30% OFF'}
-            </span>
+            <!-- Discount -->
+            ${item.discount ? `
+              <span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded z-10">
+                ${item.discount}
+              </span>
+            ` : ''}
 
-            <!-- Product Image Container -->
+            <!-- Product Image -->
             <div class="w-full h-36 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center relative">
               <img 
                 src="${imgSrc}" 
                 alt="Product" 
-                class="w-full h-full object-cover"
-                onerror="this.onerror=null; this.src='${DEFAULT_IMAGE}';"
+                class="w-full h-full object-contain p-1"
+                onerror="this.onerror=null; this.src='https://via.placeholder.com/300?text=Image+Error';"
               />
             </div>
 
@@ -127,7 +129,7 @@
 
             <!-- Price -->
             <div class="flex items-baseline gap-1.5 my-1">
-              <span class="text-base font-extrabold text-gray-900">₹${item.price}</span>
+              <span class="text-base font-extrabold text-gray-900">₹${item.price || 0}</span>
               ${item.originalPrice ? `<span class="text-xs text-gray-400 line-through">₹${item.originalPrice}</span>` : ''}
             </div>
 
@@ -138,21 +140,24 @@
 
           </div>
         `;
+
         grid.innerHTML += cardHTML;
       });
-    }
+    }, (error) => {
+      console.error("Firebase Error:", error);
+      document.getElementById("loading").innerText = "Database connection error: " + error.message;
+    });
 
+    // Simple Cart Handler
     let cartCount = 0;
     function addToCart() {
       cartCount++;
       document.getElementById("cart-count").innerText = cartCount;
     }
-
-    // App Run
-    renderProducts(databaseProducts);
   </script>
 </body>
 </html>
+
 
 
 
