@@ -6,11 +6,6 @@
   <title>Sanitary Mart</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Firebase SDKs (v8 compatibility mode) -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
   <style>
     .product-title {
       display: -webkit-box;
@@ -47,65 +42,67 @@
     <button class="bg-white border text-gray-700 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Wash Basins</button>
   </div>
 
-  <!-- Product Grid Container -->
+  <!-- Main Container -->
   <main class="px-4">
-    <!-- Loading Message -->
-    <div id="loading" class="text-center py-10 text-gray-500 font-semibold">
-      Firebase se products load ho rahe hain...
+    <!-- Loader -->
+    <div id="loading" class="text-center py-12 text-gray-500 font-medium">
+      Sanitary Mart Firebase se connect ho raha hai...
     </div>
 
-    <div id="product-grid" class="grid grid-cols-2 gap-3.5 hidden">
-      <!-- Firebase se dynamic products yahan render honge -->
-    </div>
+    <!-- Product Grid -->
+    <div id="product-grid" class="grid grid-cols-2 gap-3.5 hidden"></div>
   </main>
 
-  <!-- JavaScript Code -->
-  <script>
-    // ⚠️ STEP 1: Apni Firebase Project Keys Yahan Badlein
+  <!-- Firebase v9 (Modular SDK) Integration -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+    // Aapki Exact Config Keys
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyCuhd6WeneZFqkScgyahmkzGPV-U78Zb0s",
+      authDomain: "sanitarymart-65014.firebaseapp.com",
+      databaseURL: "https://sanitarymart-65014-default-rtdb.firebaseio.com",
+      projectId: "sanitarymart-65014",
+      storageBucket: "sanitarymart-65014.firebasestorage.app",
+      messagingSenderId: "285578370716",
+      appId: "1:285578370716:web:c47f43f25ad2ab86b25759",
+      measurementId: "G-0XJC8RN90V"
     };
 
-    // Firebase Initialize Karein
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    // Firebase Init
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-    // STEP 2: Firebase Realtime Listener
-    // Apne node ka naam check karein: 'products', 'items', etc.
-    const productsRef = database.ref('products');
+    // Database Reference (Agar aapka node name 'products' na ho, toh badal lein)
+    const productsRef = ref(db, 'products');
 
-    productsRef.on('value', (snapshot) => {
-      const grid = document.getElementById("product-grid");
-      const loading = document.getElementById("loading");
+    const grid = document.getElementById("product-grid");
+    const loading = document.getElementById("loading");
 
-      grid.innerHTML = ""; // Clear loader/previous UI
+    // Realtime Listener
+    onValue(productsRef, (snapshot) => {
+      grid.innerHTML = "";
       loading.classList.add("hidden");
       grid.classList.remove("hidden");
 
       if (!snapshot.exists()) {
-        grid.innerHTML = `<div class="col-span-2 text-center py-8 text-gray-500">Koyi products nahi mile database me!</div>`;
+        grid.innerHTML = `<div class="col-span-2 text-center py-10 text-gray-500 font-semibold">Firebase me koyi products nahi mile!</div>`;
         return;
       }
 
       snapshot.forEach((childSnapshot) => {
         const item = childSnapshot.val();
 
-        // Safe Name Fetching
-        const name = item.title || item.name || item.productName || item.product_name || "Sanitary Item";
+        // Title Safety Checks
+        const name = item.title || item.name || item.productName || item.product_name || "Sanitary Product";
 
-        // Safe Image Fetching (Aapke database me jo key ho: image, imageUrl, img, URL)
-        const imgSrc = item.image || item.imageUrl || item.img || item.url || "https://via.placeholder.com/300?text=No+Image";
+        // Image Path/URL Safety Checks
+        const imgSrc = item.image || item.imageUrl || item.img || item.url || "https://via.placeholder.com/300?text=Sanitary+Mart";
 
         const cardHTML = `
           <div class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
             
-            <!-- Discount -->
             ${item.discount ? `
               <span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded z-10">
                 ${item.discount}
@@ -118,12 +115,12 @@
                 src="${imgSrc}" 
                 alt="Product" 
                 class="w-full h-full object-contain p-1"
-                onerror="this.onerror=null; this.src='https://via.placeholder.com/300?text=Image+Error';"
+                onerror="this.onerror=null; this.src='https://via.placeholder.com/300?text=No+Image';"
               />
             </div>
 
-            <!-- Title -->
-            <div class="product-title">
+            <!-- Product Title -->
+            <div class="product-title" title="${name}">
               ${name}
             </div>
 
@@ -133,8 +130,8 @@
               ${item.originalPrice ? `<span class="text-xs text-gray-400 line-through">₹${item.originalPrice}</span>` : ''}
             </div>
 
-            <!-- Button -->
-            <button onclick="addToCart()" class="w-full mt-1 border-2 border-blue-500 text-blue-600 font-bold py-1.5 rounded-xl text-xs active:bg-blue-50 transition-all">
+            <!-- Add Button -->
+            <button id="add-btn-${childSnapshot.key}" class="w-full mt-1 border-2 border-blue-500 text-blue-600 font-bold py-1.5 rounded-xl text-xs active:bg-blue-50 transition-all">
               + Add
             </button>
 
@@ -143,16 +140,24 @@
 
         grid.innerHTML += cardHTML;
       });
+
+      // Cart Counter Attachment
+      setupCartListeners();
+
     }, (error) => {
-      console.error("Firebase Error:", error);
-      document.getElementById("loading").innerText = "Database connection error: " + error.message;
+      console.error("Firebase Read Error:", error);
+      loading.innerText = "Connection Error! Check Realtime Database Rules.";
     });
 
-    // Simple Cart Handler
     let cartCount = 0;
-    function addToCart() {
-      cartCount++;
-      document.getElementById("cart-count").innerText = cartCount;
+    function setupCartListeners() {
+      const buttons = document.querySelectorAll('[id^="add-btn-"]');
+      buttons.forEach(btn => {
+        btn.onclick = () => {
+          cartCount++;
+          document.getElementById("cart-count").innerText = cartCount;
+        };
+      });
     }
   </script>
 </body>
