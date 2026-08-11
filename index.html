@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanitary Mart - Online Showroom</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Firebase SDK (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
+</head>
+<body>
+
+    <!-- OFFER BANNER TICKER -->
+    <div class="ticker-wrap">
+        <div class="ticker-move" id="tickerText">⚡ Welcome to Sanitary Mart - Quality Fittings at Wholesale Rates!</div>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-light bg-white shadow-sm sticky-top">
+        <div class="container">
+            <a class="navbar-brand fs-4" href="#"><i class="fa-solid fa-shower text-info me-2"></i>Sanitary Mart</a>
+            <button class="btn btn-outline-primary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#cartModal">
+                <i class="fa-solid fa-cart-shopping me-1"></i> Cart <span class="badge bg-danger" id="cartCount">0</span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="container my-3">
+        <!-- SEARCH BAR -->
+        <div class="input-group mb-3 shadow-sm rounded-pill overflow-hidden">
+            <span class="input-group-text bg-white border-0 ps-3"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+            <input type="text" id="searchInput" class="form-control border-0 shadow-none" placeholder="Search Taps, Basins, Showers..." onkeyup="filterProducts()">
+        </div>
+
+        <!-- CATEGORY FILTERS -->
+        <div class="category-scroll">
+            <button class="cat-btn active" onclick="filterCategory('All', this)">All Products</button>
+            <button class="cat-btn" onclick="filterCategory('Taps & Faucets', this)">Taps & Faucets</button>
+            <button class="cat-btn" onclick="filterCategory('Wash Basins', this)">Wash Basins</button>
+            <button class="cat-btn" onclick="filterCategory('Showers', this)">Showers & Mixers</button>
+            <button class="cat-btn" onclick="filterCategory('Water Closets', this)">Water Closets</button>
+            <button class="cat-btn" onclick="filterCategory('Bath Accessories', this)">Bath Accessories</button>
+        </div>
+
+        <!-- PRODUCT GRID -->
+        <div class="row g-3 mt-1" id="productGrid">
+            <div class="text-center py-5 text-muted">
+                <div class="spinner-border text-info" role="status"></div>
+                <p class="mt-2">Showroom products loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING CART BUTTON -->
+    <a href="#" class="cart-float" data-bs-toggle="modal" data-bs-target="#cartModal">
+        <i class="fa-solid fa-basket-shopping fs-5"></i>
+        <span>₹<span id="cartTotalFloat">0</span></span>
+        <span class="cart-badge" id="cartBadgeFloat">0</span>
+    </a>
+
+    <!-- CART MODAL -->
+    <div class="modal fade" id="cartModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-cart-flatbed me-2 text-info"></i>Your Cart</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="cartList">
+                        <p class="text-muted text-center py-3">Aapki cart khali hai.</p>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top fw-bold fs-5">
+                        <span>Total Amount:</span>
+                        <span class="text-success">₹<span id="cartTotal">0</span></span>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button class="btn btn-success w-100 py-2 rounded-pill fw-bold" onclick="sendWhatsAppOrder()">
+                        <i class="fa-brands fa-whatsapp me-2 fs-5"></i>Order via WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS Script -->
+    <script src="script.js"></script>
+</body>
+</html>
