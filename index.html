@@ -20,6 +20,11 @@
       margin-top: 0.5rem;
       margin-bottom: 0.25rem;
     }
+    .cat-btn.active {
+      background-color: #0f766e !important;
+      color: #ffffff !important;
+      border-color: #0f766e !important;
+    }
   </style>
 </head>
 <body class="bg-slate-100 min-h-screen pb-20">
@@ -35,30 +40,37 @@
     </div>
   </header>
 
-  <!-- Categories -->
-  <div class="p-4 flex gap-2 overflow-x-auto scrollbar-none">
-    <button class="bg-teal-700 text-white px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">All Products</button>
-    <button class="bg-white border text-gray-700 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Taps & Faucets</button>
-    <button class="bg-white border text-gray-700 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Wash Basins</button>
+  <!-- Category Filter Buttons (Working & Added Health Faucets) -->
+  <div class="p-4 flex gap-2 overflow-x-auto scrollbar-none" id="category-container">
+    <button onclick="filterCategory('All')" class="cat-btn active bg-teal-700 text-white border border-teal-700 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+      All Products
+    </button>
+    <button onclick="filterCategory('Taps & Faucets')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+      Taps & Faucets
+    </button>
+    <button onclick="filterCategory('Wash Basins')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+      Wash Basins
+    </button>
+    <!-- Health Faucets Button Added -->
+    <button onclick="filterCategory('Health Faucets')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+      Health Faucets
+    </button>
   </div>
 
   <!-- Main Container -->
   <main class="px-4">
-    <!-- Loader -->
     <div id="loading" class="text-center py-12 text-gray-500 font-medium">
       Sanitary Mart Firebase se connect ho raha hai...
     </div>
 
-    <!-- Product Grid -->
     <div id="product-grid" class="grid grid-cols-2 gap-3.5 hidden"></div>
   </main>
 
-  <!-- Firebase v9 (Modular SDK) Integration -->
+  <!-- Firebase v9 Integration -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-    // Aapki Exact Config Keys
     const firebaseConfig = {
       apiKey: "AIzaSyCuhd6WeneZFqkScgyahmkzGPV-U78Zb0s",
       authDomain: "sanitarymart-65014.firebaseapp.com",
@@ -70,46 +82,72 @@
       measurementId: "G-0XJC8RN90V"
     };
 
-    // Firebase Init
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-
-    // Database Reference (Agar aapka node name 'products' na ho, toh badal lein)
     const productsRef = ref(db, 'products');
 
-    const grid = document.getElementById("product-grid");
-    const loading = document.getElementById("loading");
+    let allProductsData = [];
+    let currentCategory = 'All';
 
-    // Realtime Listener
+    // Firebase Realtime Listener
     onValue(productsRef, (snapshot) => {
-      grid.innerHTML = "";
-      loading.classList.add("hidden");
-      grid.classList.remove("hidden");
+      document.getElementById("loading").classList.add("hidden");
+      document.getElementById("product-grid").classList.remove("hidden");
 
       if (!snapshot.exists()) {
-        grid.innerHTML = `<div class="col-span-2 text-center py-10 text-gray-500 font-semibold">Firebase me koyi products nahi mile!</div>`;
+        document.getElementById("product-grid").innerHTML = `
+          <div class="col-span-2 text-center py-10 text-gray-500 font-semibold">Firebase me products nahi mile!</div>
+        `;
         return;
       }
 
+      allProductsData = [];
       snapshot.forEach((childSnapshot) => {
-        const item = childSnapshot.val();
+        allProductsData.push({
+          key: childSnapshot.key,
+          ...childSnapshot.val()
+        });
+      });
 
-        // Title Safety Checks
-        const name = item.title || item.name || item.productName || item.product_name || "Sanitary Product";
+      renderFilteredProducts();
+    }, (error) => {
+      console.error(error);
+      document.getElementById("loading").innerText = "Connection error! Firebase Database rules check karein.";
+    });
 
-        // Image Path/URL Safety Checks
-        const imgSrc = item.image || item.imageUrl || item.img || item.url || "https://via.placeholder.com/300?text=Sanitary+Mart";
+    // Render Filtered Items Function
+    function renderFilteredProducts() {
+      const grid = document.getElementById("product-grid");
+      grid.innerHTML = "";
 
-        const cardHTML = `
+      const filtered = allProductsData.filter(item => {
+        if (currentCategory === 'All') return true;
+        // Firebase me category field check karein (category / type)
+        const itemCat = (item.category || item.type || "").toLowerCase().trim();
+        return itemCat === currentCategory.toLowerCase().trim();
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-2 text-center py-10 text-gray-500 font-semibold">
+            "${currentCategory}" category me koyi product nahi hai!
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach((item) => {
+        const name = item.title || item.name || item.productName || "Sanitary Product";
+        const imgSrc = item.image || item.imageUrl || item.img || "https://via.placeholder.com/300?text=Sanitary+Mart";
+
+        grid.innerHTML += `
           <div class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
-            
             ${item.discount ? `
               <span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded z-10">
                 ${item.discount}
               </span>
             ` : ''}
 
-            <!-- Product Image -->
             <div class="w-full h-36 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center relative">
               <img 
                 src="${imgSrc}" 
@@ -119,46 +157,46 @@
               />
             </div>
 
-            <!-- Product Title -->
-            <div class="product-title" title="${name}">
-              ${name}
-            </div>
+            <div class="product-title" title="${name}">${name}</div>
 
-            <!-- Price -->
             <div class="flex items-baseline gap-1.5 my-1">
               <span class="text-base font-extrabold text-gray-900">₹${item.price || 0}</span>
               ${item.originalPrice ? `<span class="text-xs text-gray-400 line-through">₹${item.originalPrice}</span>` : ''}
             </div>
 
-            <!-- Add Button -->
-            <button id="add-btn-${childSnapshot.key}" class="w-full mt-1 border-2 border-blue-500 text-blue-600 font-bold py-1.5 rounded-xl text-xs active:bg-blue-50 transition-all">
+            <button onclick="window.addToCart()" class="w-full mt-1 border-2 border-blue-500 text-blue-600 font-bold py-1.5 rounded-xl text-xs active:bg-blue-50 transition-all">
               + Add
             </button>
-
           </div>
         `;
-
-        grid.innerHTML += cardHTML;
-      });
-
-      // Cart Counter Attachment
-      setupCartListeners();
-
-    }, (error) => {
-      console.error("Firebase Read Error:", error);
-      loading.innerText = "Connection Error! Check Realtime Database Rules.";
-    });
-
-    let cartCount = 0;
-    function setupCartListeners() {
-      const buttons = document.querySelectorAll('[id^="add-btn-"]');
-      buttons.forEach(btn => {
-        btn.onclick = () => {
-          cartCount++;
-          document.getElementById("cart-count").innerText = cartCount;
-        };
       });
     }
+
+    // Category Filter Click Handler
+    window.filterCategory = function(catName) {
+      currentCategory = catName;
+
+      // Update Active Button Style
+      const buttons = document.querySelectorAll('.cat-btn');
+      buttons.forEach(btn => {
+        if (btn.innerText.trim().toLowerCase() === catName.toLowerCase() || (catName === 'All' && btn.innerText.includes('All'))) {
+          btn.classList.add('active', 'bg-teal-700', 'text-white', 'border-teal-700');
+          btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+        } else {
+          btn.classList.remove('active', 'bg-teal-700', 'text-white', 'border-teal-700');
+          btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+        }
+      });
+
+      renderFilteredProducts();
+    };
+
+    // Cart Handler
+    let cartCount = 0;
+    window.addToCart = function() {
+      cartCount++;
+      document.getElementById("cart-count").innerText = cartCount;
+    };
   </script>
 </body>
 </html>
