@@ -1,4 +1,4 @@
-// Firebase Config
+// Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyCuhd6WeneZFqkScgyVv2-8k5_xZz5N5o",
     databaseURL: "https://sanitarymart-65014-default-rtdb.firebaseio.com/",
@@ -6,36 +6,38 @@ const firebaseConfig = {
     appId: "1:285578370716:web:c47f43f25ad2ab86b25759"
 };
 
-// Pehle check karein ki Firebase initialized hai ya nahi
+// Initialize Firebase safely
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 const database = firebase.database();
 
 let allProducts = [];
+let cart = [];
 let currentCategory = 'All';
 
-// 1. Flash Banner
+// 1. Load Flash Banner
 database.ref('storeSettings/flashBanner').on('value', (snap) => {
-    if(snap.exists()) {
-        const text = snap.val();
-        document.getElementById('tickerText').innerText = "⚡ " + (typeof text === 'object' ? Object.values(text)[0] : text);
+    const tickerEl = document.getElementById('tickerText');
+    if(tickerEl && snap.exists()) {
+        const val = snap.val();
+        tickerEl.innerText = "⚡ " + (typeof val === 'object' ? Object.values(val)[0] : val);
     }
 });
 
-// 2. Fetch Products (Dono nodes check karega: 'ecommerce_products' aur 'products')
-function loadProducts() {
+// 2. Fetch Products with Multiple Node Fallbacks
+function initProductsListener() {
     const dbRef = database.ref();
     
-    // Pehle 'ecommerce_products' try karein
+    // Check primary node: ecommerce_products
     dbRef.child('ecommerce_products').on('value', (snap) => {
         if (snap.exists()) {
-            parseAndSetProducts(snap.val());
+            processFirebaseData(snap.val());
         } else {
-            // Agar wahan nahi mila to 'products' node check karein
+            // Fallback node: products
             dbRef.child('products').on('value', (snap2) => {
                 if (snap2.exists()) {
-                    parseAndSetProducts(snap2.val());
+                    processFirebaseData(snap2.val());
                 } else {
                     allProducts = [];
                     renderProducts();
@@ -45,50 +47,55 @@ function loadProducts() {
     });
 }
 
-function parseAndSetProducts(data) {
+function processFirebaseData(data) {
     allProducts = [];
-    if (typeof data === 'object') {
-        Object.keys(data).forEach(key => {
-            allProducts.push({ id: key, ...data[key] });
-        });
+    if (data) {
+        if (Array.isArray(data)) {
+            allProducts = data.filter(item => item !== null && item !== undefined);
+        } else if (typeof data === 'object') {
+            Object.keys(data).forEach(key => {
+                if (data[key]) {
+                    allProducts.push({ id: key, ...data[key] });
+                }
+            });
+        }
     }
     renderProducts();
 }
 
-loadProducts();
-
-// 3. Render Products (Flexible Key Check)
+// 3. Render Product Grid
 function renderProducts() {
     const grid = document.getElementById('productGrid');
-    const searchVal = (document.getElementById('searchInput')?.value || "").toLowerCase().trim();
+    if (!grid) return;
+
+    const searchInput = document.getElementById('searchInput');
+    const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : '';
     
-    if(!grid) return;
     grid.innerHTML = "";
 
     const filtered = allProducts.filter(p => {
-        // Safe null/undefined checks
-        const pName = (p.title || p.name || p.productName || "").toLowerCase();
-        const pCat = (p.category || p.cat || "").trim().toLowerCase();
-        const selectedCat = currentCategory.trim().toLowerCase();
+        const title = (p.title || p.name || p.productName || "").toLowerCase();
+        const cat = (p.category || p.cat || "").toLowerCase();
+        const selectedCat = currentCategory.toLowerCase();
 
-        const matchesCat = (currentCategory === 'All' || pCat === selectedCat || pCat.includes(selectedCat));
-        const matchesSearch = (pName.includes(searchVal));
+        const matchesCat = (currentCategory === 'All' || cat === selectedCat || cat.includes(selectedCat));
+        const matchesSearch = title.includes(searchVal);
 
         return matchesCat && matchesSearch;
     });
 
-    if(filtered.length === 0) {
+    if (filtered.length === 0) {
         grid.innerHTML = `
-            <div class="text-center py-5 text-muted">
+            <div class="col-12 text-center py-5 text-muted">
                 <i class="fa-solid fa-box-open fs-1 mb-2"></i>
                 <p class="mb-0 fw-semibold">No products found in this category.</p>
-                <small>Check if products exist in Firebase Realtime Database.</small>
             </div>`;
         return;
     }
 
     filtered.forEach(p => {
-        const title = p.title || p.name || "Sanitary Product";
+        const id = p.id || Math.random().toString(36).substring(7);
+        const title = p.title || p.name || "Sanitary Item";
         const price = Number(p.price || p.rate || 0);
         const disc = Number(p.discount || p.disc || 0);
         const finalPrice = disc > 0 ? Math.round(price - (price * disc / 100)) : price;
@@ -109,7 +116,7 @@ function renderProducts() {
                             ${disc > 0 ? `<small class="text-muted text-decoration-line-through ms-1">₹${price}</small>` : ''}
                         </div>
                         <button class="btn btn-sm btn-outline-primary w-100 mt-auto rounded-pill fw-semibold" 
-                            ${isOut ? 'disabled' : ''} onclick="addToCart('${p.id}')">
+                            ${isOut ? 'disabled' : ''} onclick="addToCart('${id}')">
                             <i class="fa-solid fa-plus me-1"></i> Add
                         </button>
                     </div>
@@ -119,4 +126,126 @@ function renderProducts() {
         `;
     });
 }
+
+// 4. Filtering Functions
+function filterCategory(cat, btn) {
+    currentCategory = cat;
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderProducts();
+}
+
+function filterProducts() {
+    renderProducts();
+}
+
+// 5. Cart Logic
+function addToCart(productId) {
+    const product = allProducts.find(p => p.id === productId);
+    if (!product) return;
+
+    const existing = cart.find(item => item.id === productId);
+    if (existing) {
+        existing.quantity += 1;
+    } else {
+        cart.push({ ...product, quantity: 1 });
+    }
+    updateCartUI();
+}
+
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    updateCartUI();
+}
+
+function changeQty(index, delta) {
+    cart[index].quantity += delta;
+    if (cart[index].quantity <= 0) {
+        cart.splice(index, 1);
+    }
+    updateCartUI();
+}
+
+function updateCartUI() {
+    const cartList = document.getElementById('cartList');
+    const cartTotal = document.getElementById('cartTotal');
+    const cartTotalFloat = document.getElementById('cartTotalFloat');
+    const cartCount = document.getElementById('cartCount');
+    const cartBadgeFloat = document.getElementById('cartBadgeFloat');
+
+    let total = 0;
+    let count = 0;
+
+    if (cart.length === 0) {
+        if(cartList) cartList.innerHTML = "<p class='text-muted text-center py-3'>Aapki cart khali hai.</p>";
+        if(cartTotal) cartTotal.innerText = "0";
+        if(cartTotalFloat) cartTotalFloat.innerText = "0";
+        if(cartCount) cartCount.innerText = "0";
+        if(cartBadgeFloat) cartBadgeFloat.innerText = "0";
+        return;
+    }
+
+    if(cartList) cartList.innerHTML = "";
+
+    cart.forEach((item, index) => {
+        const price = Number(item.price || 0);
+        const disc = Number(item.discount || 0);
+        const itemPrice = disc > 0 ? Math.round(price - (price * disc / 100)) : price;
+        const itemSubtotal = itemPrice * item.quantity;
+        
+        total += itemSubtotal;
+        count += item.quantity;
+
+        if(cartList) {
+            cartList.innerHTML += `
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                    <div style="flex:1;">
+                        <strong class="d-block text-truncate" style="max-width: 180px;">${item.title || item.name}</strong>
+                        <small class="text-muted">₹${itemPrice} x ${item.quantity} = ₹${itemSubtotal}</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-sm btn-light border px-2 py-0" onclick="changeQty(${index}, -1)">-</button>
+                        <span class="fw-bold fs-6">${item.quantity}</span>
+                        <button class="btn btn-sm btn-light border px-2 py-0" onclick="changeQty(${index}, 1)">+</button>
+                        <button class="btn btn-sm text-danger ms-1" onclick="removeFromCart(${index})"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+        }
+    });
+
+    if(cartTotal) cartTotal.innerText = total;
+    if(cartTotalFloat) cartTotalFloat.innerText = total;
+    if(cartCount) cartCount.innerText = count;
+    if(cartBadgeFloat) cartBadgeFloat.innerText = count;
+}
+
+function sendWhatsAppOrder() {
+    if (cart.length === 0) {
+        alert("Pehle cart me koi product add karein!");
+        return;
+    }
+
+    let msg = "🛒 *New Order - Sanitary Mart*\n---------------------------\n";
+    let grandTotal = 0;
+
+    cart.forEach((item, i) => {
+        const price = Number(item.price || 0);
+        const disc = Number(item.discount || 0);
+        const itemPrice = disc > 0 ? Math.round(price - (price * disc / 100)) : price;
+        const subtotal = itemPrice * item.quantity;
+        grandTotal += subtotal;
+        msg += `${i+1}. *${item.title || item.name}*\n   Qty: ${item.quantity} | Price: ₹${subtotal}\n`;
+    });
+
+    msg += `---------------------------\n💰 *Grand Total: ₹${grandTotal}*\n\nPlease confirm my order!`;
+
+    const phone = "919000000000"; // Update with your mobile number
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// Start product fetching
+initProductsListener();
+
+            
 
