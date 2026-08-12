@@ -11,14 +11,15 @@ body {
   padding-bottom: 80px;
 }
 
-/* Header & Banner */
+/* Clean Header */
 .header {
   background: #0284c7;
   color: white;
-  padding: 12px 16px;
+  padding: 14px 16px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  text-align: center;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -26,30 +27,16 @@ body {
 }
 
 .header h1 {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .header .subtitle {
   font-size: 11px;
   opacity: 0.9;
-}
-
-.status-pill {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.status-pill .dot {
-  width: 6px;
-  height: 6px;
-  background: #22c55e;
-  border-radius: 50%;
+  display: block;
+  margin-top: 2px;
 }
 
 .ticker {
@@ -61,21 +48,38 @@ body {
   text-align: center;
 }
 
+/* Search Box with Clear Button */
 .search-box {
   padding: 10px 16px;
   background: #0284c7;
 }
 
-.search-box input {
+.search-wrapper {
+  position: relative;
   width: 100%;
-  padding: 10px 14px;
+}
+
+.search-wrapper input {
+  width: 100%;
+  padding: 10px 36px 10px 14px;
   border-radius: 8px;
   border: none;
   outline: none;
   font-size: 14px;
 }
 
-/* Categories */
+.clear-search {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #64748b;
+  cursor: pointer;
+  display: none;
+}
+
+/* Categories & Counters */
 .categories {
   display: flex;
   gap: 8px;
@@ -86,7 +90,7 @@ body {
 }
 
 .filter-btn {
-  padding: 6px 14px;
+  padding: 6px 12px;
   border-radius: 20px;
   border: 1px solid #cbd5e1;
   background: #fff;
@@ -94,13 +98,17 @@ body {
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .filter-btn.active {
   background: #0284c7;
   color: #fff;
   border-color: #0284c7;
+}
+
+.cat-count {
+  font-size: 10px;
+  opacity: 0.8;
 }
 
 /* Product Grid */
@@ -116,15 +124,8 @@ body {
   text-align: center;
   color: #64748b;
   padding: 40px 0;
-  font-size: 14px;
 }
 
-.loading-state i {
-  font-size: 24px;
-  margin-bottom: 8px;
-}
-
-/* Product Card */
 .product-card {
   background: #fff;
   border-radius: 16px;
@@ -167,30 +168,10 @@ body {
   overflow: hidden;
 }
 
-.rating {
-  color: #ffc107;
-  font-size: 10px;
-  margin-bottom: 4px;
-}
-
-.price-row {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.old-price {
-  text-decoration: line-through;
-  color: #94a3b8;
-  font-size: 11px;
-}
-
-.new-price {
-  color: #ef4444;
-  font-weight: 800;
-  font-size: 14px;
-}
+.rating { color: #ffc107; font-size: 10px; margin-bottom: 4px; }
+.price-row { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+.old-price { text-decoration: line-through; color: #94a3b8; font-size: 11px; }
+.new-price { color: #ef4444; font-weight: 800; font-size: 14px; }
 
 .add-btn {
   width: 100%;
@@ -206,113 +187,69 @@ body {
 
 /* Floating Actions */
 .float-cart {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #0284c7;
-  color: white;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  cursor: pointer;
-  z-index: 99;
+  position: fixed; bottom: 20px; right: 20px;
+  background: #0284c7; color: white;
+  width: 56px; height: 56px; border-radius: 50%;
+  display: flex; justify-content: center; align-items: center;
+  font-size: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  cursor: pointer; z-index: 99;
 }
 
 .cart-badge {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  background: #ef4444;
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 11px;
-  font-weight: bold;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  position: absolute; top: 2px; right: 2px;
+  background: #ef4444; color: white; border-radius: 50%;
+  width: 20px; height: 20px; font-size: 11px; font-weight: bold;
+  display: flex; justify-content: center; align-items: center;
 }
 
 .float-wa {
-  position: fixed;
-  bottom: 85px;
-  right: 20px;
-  background: #22c55e;
-  color: white;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 24px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  text-decoration: none;
-  z-index: 99;
+  position: fixed; bottom: 85px; right: 20px;
+  background: #22c55e; color: white;
+  width: 50px; height: 50px; border-radius: 50%;
+  display: flex; justify-content: center; align-items: center;
+  font-size: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  text-decoration: none; z-index: 99;
 }
 
-/* Toast */
 .toast {
-  display: none;
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #1e293b;
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 20px;
-  font-size: 12px;
-  z-index: 1000;
+  display: none; position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%); background: #1e293b; color: #fff;
+  padding: 10px 20px; border-radius: 20px; font-size: 12px; z-index: 1000;
 }
 
-/* Modal */
+/* Modals */
 .modal {
-  display: none;
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5);
-  justify-content: center;
-  align-items: center;
-  z-index: 200;
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 200;
 }
 
 .modal-content {
-  background: #fff;
-  padding: 20px;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 400px;
-  position: relative;
+  background: #fff; padding: 20px; border-radius: 16px;
+  width: 90%; max-width: 400px; position: relative;
 }
 
-.close-btn {
-  position: absolute;
-  top: 10px; right: 15px;
-  font-size: 24px;
-  cursor: pointer;
+.close-btn { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; }
+
+/* Image Zoom Feature */
+.img-zoom-container { position: relative; cursor: pointer; text-align: center; }
+.modal-img { width: 100%; height: 180px; object-fit: contain; margin-bottom: 8px; }
+.zoom-hint { position: absolute; bottom: 12px; right: 10px; background: rgba(0,0,0,0.6); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; }
+
+.lightbox-modal {
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 300;
 }
 
-.modal-img {
-  width: 100%;
-  height: 180px;
-  object-fit: contain;
-  margin-bottom: 12px;
-}
+.lightbox-content { max-width: 90%; max-height: 80%; object-fit: contain; }
+.lightbox-close { position: absolute; top: 20px; right: 25px; color: #fff; font-size: 35px; cursor: pointer; }
 
-.modal-title { font-size: 16px; margin-bottom: 8px; }
-.modal-price { font-size: 18px; color: #ef4444; font-weight: bold; margin-bottom: 16px; }
-
+.modal-title { font-size: 15px; margin-bottom: 6px; }
+.modal-price { font-size: 18px; color: #ef4444; font-weight: bold; margin-bottom: 14px; }
 .modal-actions { display: flex; gap: 8px; }
 .btn-primary { flex: 1; background: #0284c7; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-.btn-whatsapp { flex: 1; background: #22c55e; color: white; text-decoration: none; text-align: center; padding: 10px; border-radius: 8px; font-weight: bold; }
+.btn-whatsapp { flex: 1; background: #22c55e; color: white; text-decoration: none; text-align: center; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; }
 .btn-secondary { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
-.cart-list { max-height: 200px; overflow-y: auto; margin: 12px 0; }
+.cart-list { max-height: 180px; overflow-y: auto; margin: 12px 0; }
 .cart-summary { display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-top: 12px; }
+
 
