@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sanitary Mart - Pro Edition</title>
+  <title>Sanitary Mart - Digital Showroom</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .product-title {
@@ -20,52 +20,54 @@
       margin-bottom: 0.25rem;
     }
     .cat-btn.active {
-      background-color: #0f766e !important;
+      background-color: #0284c7 !important;
       color: #ffffff !important;
-      border-color: #0f766e !important;
+      border-color: #0284c7 !important;
     }
   </style>
 </head>
 <body class="bg-slate-100 min-h-screen pb-24">
 
-  <!-- Header -->
-  <header class="bg-white p-4 shadow-sm sticky top-0 z-20">
-    <div class="flex justify-between items-center mb-3">
-      <div class="flex items-center gap-2">
-        <span class="text-teal-600 text-2xl">🚿</span>
-        <h1 class="text-xl font-bold text-teal-800">Sanitary Mart</h1>
-      </div>
-      
-      <button onclick="openCartModal()" class="border border-blue-500 text-blue-600 px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5 active:scale-95 transition-all">
+  <!-- Blue Header -->
+  <header class="bg-sky-600 p-4 text-white sticky top-0 z-20 shadow-md">
+    <div class="flex justify-between items-center mb-2">
+      <h1 class="text-xl font-bold">Sanitary Mart - Digital Showroom</h1>
+      <button onclick="openCartModal()" class="bg-white text-sky-600 px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5 shadow-sm">
         🛒 Cart <span id="cart-count" class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">0</span>
       </button>
     </div>
+    
+    <!-- Top Announcement Banner -->
+    <div class="bg-red-500 text-white text-xs text-center py-1 rounded font-medium mb-3">
+      30% off all sanitary ware and 18% off faucet
+    </div>
 
-    <!-- Live Search Bar -->
+    <!-- Search Bar -->
     <div class="relative">
       <input 
         type="text" 
         id="search-input" 
         oninput="handleSearch()"
-        placeholder="Search Taps, Basins, Showers, Faucets..." 
-        class="w-full pl-10 pr-4 py-2 bg-slate-100 rounded-full text-sm text-gray-800 border border-slate-200 focus:outline-none focus:border-teal-600"
+        placeholder="Search (e.g. Agnese, Sharp, Taps)..." 
+        class="w-full pl-10 pr-4 py-2 bg-white text-gray-800 rounded-full text-sm border-none focus:outline-none shadow-inner"
       />
-      <span class="absolute left-3.5 top-2.5 text-gray-400 text-sm">🔍</span>
+      <span class="absolute left-3.5 top-2 text-gray-400 text-sm">🔍</span>
     </div>
   </header>
 
-  <!-- Categories & Sorting Bar -->
+  <!-- Categories Bar -->
   <div class="p-4 space-y-3">
     <div class="flex gap-2 overflow-x-auto scrollbar-none" id="category-container">
-      <button onclick="filterCategory('All')" class="cat-btn active bg-teal-700 text-white border border-teal-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">All</button>
-      <button onclick="filterCategory('Taps & Faucets')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Taps & Faucets</button>
-      <button onclick="filterCategory('Wash Basins')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Wash Basins</button>
+      <button onclick="filterCategory('All')" class="cat-btn active bg-sky-600 text-white border border-sky-600 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">All Products</button>
+      <button onclick="filterCategory('Sanitary')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Sanitary</button>
+      <!-- Standardized Button for Taps, Faucets & Showers -->
+      <button onclick="filterCategory('Taps & Showers')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Taps & Showers</button>
       <button onclick="filterCategory('Health Faucets')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Health Faucets</button>
     </div>
 
     <div class="flex justify-between items-center text-xs text-gray-500 px-1">
       <span id="product-count-text">Loading items...</span>
-      <select id="sort-select" onchange="handleSort()" class="bg-transparent border-none font-semibold text-teal-800 focus:outline-none cursor-pointer">
+      <select id="sort-select" onchange="handleSort()" class="bg-transparent border-none font-semibold text-sky-800 focus:outline-none cursor-pointer">
         <option value="default">Sort: Default</option>
         <option value="low-high">Price: Low to High</option>
         <option value="high-low">Price: High to Low</option>
@@ -73,7 +75,7 @@
     </div>
   </div>
 
-  <!-- Product Grid -->
+  <!-- Main Product Display -->
   <main class="px-4">
     <div id="loading" class="text-center py-12 text-gray-500 font-medium">
       Sanitary Mart Firebase se connect ho raha hai...
@@ -82,58 +84,12 @@
     <div id="product-grid" class="grid grid-cols-2 gap-3.5 hidden"></div>
   </main>
 
-  <!-- Product Detail Modal (Pop-up) -->
-  <div id="detail-modal" class="fixed inset-0 bg-black/60 z-30 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-2xl p-5 relative max-h-[90vh] overflow-y-auto">
-      <button onclick="closeDetailModal()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
-      
-      <div class="w-full h-48 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center mb-4">
-        <img id="modal-img" src="" alt="Detail" class="w-full h-full object-contain p-2" />
-      </div>
+  <!-- Floating WhatsApp & Cart Buttons -->
+  <a href="https://wa.me/919876543210" target="_blank" class="fixed bottom-6 left-4 bg-emerald-500 text-white p-3 rounded-full shadow-lg z-30 flex items-center justify-center text-2xl">
+    💬
+  </a>
 
-      <h3 id="modal-title" class="text-lg font-bold text-gray-900 mb-1"></h3>
-      <p id="modal-desc" class="text-xs text-gray-500 mb-3 leading-relaxed"></p>
-
-      <div class="flex items-baseline gap-2 mb-4">
-        <span id="modal-price" class="text-xl font-black text-teal-700"></span>
-        <span id="modal-orig-price" class="text-xs text-gray-400 line-through"></span>
-      </div>
-
-      <div class="grid grid-cols-2 gap-2">
-        <button id="modal-add-btn" class="border-2 border-teal-600 text-teal-700 font-bold py-2 rounded-xl text-xs active:scale-95 transition-all">
-          🛒 Add to Cart
-        </button>
-        <button id="modal-buy-btn" class="bg-green-600 text-white font-bold py-2 rounded-xl text-xs active:scale-95 transition-all">
-          ⚡ Buy Now
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Cart Modal Drawer -->
-  <div id="cart-modal" class="fixed inset-0 bg-black/50 z-30 hidden flex justify-end">
-    <div class="bg-white w-full max-w-md h-full p-4 flex flex-col justify-between overflow-y-auto">
-      <div>
-        <div class="flex justify-between items-center border-b pb-3 mb-3">
-          <h2 class="text-lg font-bold text-gray-800">Your Cart 🛒</h2>
-          <button onclick="closeCartModal()" class="text-gray-500 text-2xl font-bold">&times;</button>
-        </div>
-        <div id="cart-items-container" class="space-y-3"></div>
-      </div>
-
-      <div class="border-t pt-4 mt-4 space-y-3">
-        <div class="flex justify-between font-bold text-lg">
-          <span>Total Price:</span>
-          <span class="text-teal-700">₹<span id="cart-total-price">0</span></span>
-        </div>
-        <button onclick="orderViaWhatsApp()" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all">
-          💬 WhatsApp Par Order Karein
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Firebase v9 Integration -->
+  <!-- Firebase Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
@@ -176,16 +132,33 @@
       renderProducts();
     });
 
+    // Smart Filtering Logic (Handles Taps, Faucets & Showers combined)
     function renderProducts() {
       const grid = document.getElementById("product-grid");
       grid.innerHTML = "";
 
       let filtered = allProductsData.filter(item => {
         const name = (item.title || item.name || item.productName || "").toLowerCase();
-        const cat = (item.category || item.type || "").toLowerCase();
+        const cat = (item.category || item.type || item.cat || "").toLowerCase().trim();
+        const selected = currentCategory.toLowerCase().trim();
 
-        return (currentCategory === 'All' || cat === currentCategory.toLowerCase()) &&
-               name.includes(searchQuery.toLowerCase());
+        const matchSearch = name.includes(searchQuery.toLowerCase());
+
+        let matchCat = false;
+        if (selected === 'all' || selected.includes('all')) {
+          matchCat = true;
+        } else if (selected.includes('tap') || selected.includes('shower') || selected.includes('faucet')) {
+          // Check if category contains tap, shower, or faucet keywords
+          matchCat = cat.includes('tap') || cat.includes('shower') || cat.includes('faucet') || cat.includes('mixer');
+        } else if (selected.includes('sanitary')) {
+          matchCat = cat.includes('sanitary') || cat.includes('basin') || cat.includes('seat');
+        } else if (selected.includes('health')) {
+          matchCat = cat.includes('health') || cat.includes('spray');
+        } else {
+          matchCat = cat === selected;
+        }
+
+        return matchCat && matchSearch;
       });
 
       if (currentSort === 'low-high') filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
@@ -194,82 +167,55 @@
       document.getElementById("product-count-text").innerText = `${filtered.length} Items Available`;
 
       if (filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-2 text-center py-10 text-gray-500 font-semibold">Koyi product nahi mila!</div>`;
+        grid.innerHTML = `
+          <div class="col-span-2 text-center py-10 text-gray-500 font-semibold">
+            "${currentCategory}" category me koyi product nahi mila!<br>
+            <button onclick="filterCategory('All')" class="mt-2 text-xs text-sky-700 font-bold underline">
+              All Products Dekhein
+            </button>
+          </div>`;
         return;
       }
 
       filtered.forEach((item) => {
         const name = item.title || item.name || item.productName || "Sanitary Item";
         const imgSrc = item.image || item.imageUrl || item.img || "https://via.placeholder.com/300?text=Sanitary+Mart";
-
         const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
 
         grid.innerHTML += `
           <div class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
-            ${item.discount ? `<span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded z-10">${item.discount}</span>` : ''}
+            ${item.discount ? `<span class="absolute top-2 left-2 bg-yellow-400 text-black text-[10px] font-bold px-2 py-0.5 rounded z-10">${item.discount}</span>` : ''}
 
-            <div onclick='window.openDetailModal(${itemJson})' class="w-full h-36 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center cursor-pointer relative">
+            <div class="w-full h-36 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center relative">
               <img src="${imgSrc}" alt="Product" class="w-full h-full object-contain p-1" onerror="this.onerror=null; this.src='https://via.placeholder.com/300?text=No+Image';" />
             </div>
 
-            <div onclick='window.openDetailModal(${itemJson})' class="product-title cursor-pointer" title="${name}">${name}</div>
+            <div class="product-title" title="${name}">${name}</div>
 
             <div class="flex items-baseline gap-1.5 my-1">
-              <span class="text-base font-extrabold text-gray-900">₹${item.price || 0}</span>
-              ${item.originalPrice ? `<span class="text-xs text-gray-400 line-through">₹${item.originalPrice}</span>` : ''}
+              <span class="text-xs text-gray-400 line-through">₹${item.originalPrice || (item.price ? item.price + 500 : '')}</span>
+              <span class="text-base font-extrabold text-red-600">₹${item.price || 0}</span>
             </div>
 
-            <button onclick='window.addToCart(${itemJson})' class="w-full mt-1 border-2 border-blue-500 text-blue-600 font-bold py-1.5 rounded-xl text-xs active:bg-blue-50 transition-all">
-              + Add
+            <button onclick='window.addToCart(${itemJson})' class="w-full mt-1 bg-sky-500 hover:bg-sky-600 text-white font-bold py-1.5 rounded-xl text-xs active:scale-95 transition-all">
+              Add to Cart
             </button>
           </div>
         `;
       });
     }
 
-    // Modal Details Window
-    window.openDetailModal = function(item) {
-      const name = item.title || item.name || item.productName || "Sanitary Product";
-      const imgSrc = item.image || item.imageUrl || item.img || "https://via.placeholder.com/300";
-
-      document.getElementById("modal-img").src = imgSrc;
-      document.getElementById("modal-title").innerText = name;
-      document.getElementById("modal-desc").innerText = item.description || "High-quality durable sanitaryware product with premium finish.";
-      document.getElementById("modal-price").innerText = `₹${item.price || 0}`;
-      document.getElementById("modal-orig-price").innerText = item.originalPrice ? `₹${item.originalPrice}` : '';
-
-      document.getElementById("modal-add-btn").onclick = function() {
-        window.addToCart(item);
-        window.closeDetailModal();
-      };
-
-      document.getElementById("modal-buy-btn").onclick = function() {
-        window.directBuyNow(item);
-      };
-
-      document.getElementById("detail-modal").classList.remove("hidden");
-    };
-
-    window.closeDetailModal = function() {
-      document.getElementById("detail-modal").classList.add("hidden");
-    };
-
-    // Direct Buy Now
-    window.directBuyNow = function(item) {
-      const name = item.title || item.name || item.productName || "Sanitary Product";
-      const phoneNumber = "919876543210"; 
-      const message = `Hello Sanitary Mart, mujhe urgent ye buy karna hai:\n\n*${name}* - ₹${item.price || 0}`;
-      window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
-    };
-
-    // Global Handlers
+    // Category click handler
     window.filterCategory = function(catName) {
       currentCategory = catName;
       document.querySelectorAll('.cat-btn').forEach(btn => {
-        if (btn.innerText.trim().toLowerCase() === catName.toLowerCase() || (catName === 'All' && btn.innerText.includes('All'))) {
-          btn.classList.add('active', 'bg-teal-700', 'text-white', 'border-teal-700');
+        const text = btn.innerText.trim().toLowerCase();
+        if (text === catName.toLowerCase() || (catName === 'All' && text.includes('all'))) {
+          btn.classList.add('active', 'bg-sky-600', 'text-white', 'border-sky-600');
+          btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
         } else {
-          btn.classList.remove('active', 'bg-teal-700', 'text-white', 'border-teal-700');
+          btn.classList.remove('active', 'bg-sky-600', 'text-white', 'border-sky-600');
+          btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
         }
       });
       renderProducts();
@@ -289,48 +235,10 @@
     window.addToCart = function(item) {
       const name = item.title || item.name || item.productName || "Sanitary Item";
       cart.push({ name, price: item.price || 0 });
-      updateCartUI();
-    };
-
-    function updateCartUI() {
       document.getElementById("cart-count").innerText = cart.length;
-      const container = document.getElementById("cart-items-container");
-      container.innerHTML = "";
-      let total = 0;
-
-      cart.forEach((item, index) => {
-        total += item.price;
-        container.innerHTML += `
-          <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border">
-            <div>
-              <p class="font-bold text-xs text-gray-800">${item.name}</p>
-              <p class="text-xs text-teal-700 font-semibold">₹${item.price}</p>
-            </div>
-            <button onclick="removeFromCart(${index})" class="text-red-500 font-bold text-xs">Remove</button>
-          </div>
-        `;
-      });
-
-      document.getElementById("cart-total-price").innerText = total;
-    }
-
-    window.removeFromCart = function(index) {
-      cart.splice(index, 1);
-      updateCartUI();
-    };
-
-    window.openCartModal = function() { document.getElementById("cart-modal").classList.remove("hidden"); };
-    window.closeCartModal = function() { document.getElementById("cart-modal").classList.add("hidden"); };
-
-    window.orderViaWhatsApp = function() {
-      if(cart.length === 0) return alert("Aapka cart khali hai!");
-      const phoneNumber = "919876543210"; 
-      let message = "Hello Sanitary Mart, mujhe ye products order karne hain:\n\n";
-      cart.forEach((item, i) => { message += `${i+1}. ${item.name} - ₹${item.price}\n`; });
-      message += `\n*Total Price: ₹${document.getElementById("cart-total-price").innerText}*`;
-      window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
     };
   </script>
 </body>
 </html>
+
 
