@@ -1,398 +1,364 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sanitary Mart - Digital Showroom</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sanitary Mart - Order Invoice System</title>
+  
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- html2pdf Library for PDF Download -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <!-- Print Specific Styles (Printer par faltu buttons chhupa kar clean bill print karega) -->
   <style>
-    .product-title {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      min-height: 2.5rem;
-      color: #1f2937;
-      font-weight: 700;
-      font-size: 0.875rem;
-      line-height: 1.25rem;
-      margin-top: 0.5rem;
-      margin-bottom: 0.25rem;
-    }
-    .cat-btn.active {
-      background-color: #0284c7 !important;
-      color: #ffffff !important;
-      border-color: #0284c7 !important;
+    @media print {
+      body {
+        background: white !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      #invoice-card {
+        box-shadow: none !important;
+        border: 1px solid #000 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
     }
   </style>
 </head>
-<body class="bg-slate-100 min-h-screen pb-24">
+<body class="bg-slate-100 min-h-screen p-2 sm:p-4 flex flex-col justify-center items-center font-sans">
 
-  <!-- Header -->
-  <header class="bg-sky-600 p-4 text-white sticky top-0 z-20 shadow-md">
-    <div class="flex justify-between items-center mb-2">
-      <h1 class="text-xl font-bold">Sanitary Mart</h1>
-      <button onclick="window.openCartModal()" class="bg-white text-sky-600 px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all">
-        🛒 Cart <span id="cart-count" class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">0</span>
-      </button>
-    </div>
+  <!-- Main Invoice Box -->
+  <div id="invoice-card" class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200 my-4">
     
-    <div class="bg-red-500 text-white text-xs text-center py-1 rounded font-medium mb-3">
-      30% off all sanitary ware and 18% off faucet
-    </div>
-
-    <div class="relative">
-      <input 
-        type="text" 
-        id="search-input" 
-        oninput="window.handleSearch()"
-        placeholder="Search (e.g. Agnese, Sharp, Taps)..." 
-        class="w-full pl-10 pr-4 py-2 bg-white text-gray-800 rounded-full text-sm border-none focus:outline-none shadow-inner"
-      />
-      <span class="absolute left-3.5 top-2 text-gray-400 text-sm">🔍</span>
-    </div>
-  </header>
-
-  <!-- Categories -->
-  <div class="p-4 space-y-3">
-    <div class="flex gap-2 overflow-x-auto scrollbar-none" id="category-container">
-      <button onclick="window.filterCategory('All')" class="cat-btn active bg-sky-600 text-white border border-sky-600 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">All Products</button>
-      <button onclick="window.filterCategory('Sanitary')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Sanitary</button>
-      <button onclick="window.filterCategory('Taps & Showers')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Taps & Showers</button>
-      <button onclick="window.filterCategory('Health Faucets')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Health Faucets</button>
-    </div>
-
-    <div class="flex justify-between items-center text-xs text-gray-500 px-1">
-      <span id="product-count-text">Loading items...</span>
-      <select id="sort-select" onchange="window.handleSort()" class="bg-transparent border-none font-semibold text-sky-800 focus:outline-none cursor-pointer">
-        <option value="default">Sort: Default</option>
-        <option value="low-high">Price: Low to High</option>
-        <option value="high-low">Price: High to Low</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- Product Grid -->
-  <main class="px-4">
-    <div id="loading" class="text-center py-12 text-gray-500 font-medium">
-      Sanitary Mart Firebase se connect ho raha hai...
-    </div>
-
-    <div id="product-grid" class="grid grid-cols-2 gap-3.5 hidden"></div>
-  </main>
-
-  <!-- Cart & Checkout Modal -->
-  <div id="cart-modal" class="fixed inset-0 bg-black/50 z-40 hidden flex justify-end">
-    <div class="bg-white w-full max-w-md h-full p-4 flex flex-col justify-between overflow-y-auto">
+    <!-- 1. Header -->
+    <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
       <div>
-        <div class="flex justify-between items-center border-b pb-3 mb-3">
-          <h2 class="text-lg font-bold text-gray-800">Checkout & Order 🛒</h2>
-          <button onclick="window.closeCartModal()" class="text-gray-500 text-2xl font-bold">&times;</button>
-        </div>
+        <h1 class="text-xl font-extrabold tracking-wide text-emerald-400">Sanitary Mart</h1>
+        <p class="text-xs text-gray-300">Official Order Invoice</p>
+      </div>
+      <span class="bg-emerald-500/20 text-emerald-300 text-xs px-2.5 py-1 rounded-full border border-emerald-500/30 font-semibold no-print">
+        Live Cart
+      </span>
+    </div>
 
-        <!-- Selected Items -->
-        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">1. Selected Products</p>
-        <div id="cart-items-container" class="space-y-2 mb-4"></div>
+    <div class="p-4 space-y-4">
 
-        <!-- Delivery Address Form -->
-        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">2. Delivery Address</p>
-        <div class="space-y-2 mb-4">
-          <input type="text" id="cust-name" placeholder="Full Name *" class="w-full text-xs p-2.5 border rounded-lg focus:outline-sky-600 bg-gray-50" />
-          <input type="tel" id="cust-phone" placeholder="Mobile Number *" class="w-full text-xs p-2.5 border rounded-lg focus:outline-sky-600 bg-gray-50" />
-          <textarea id="cust-address" rows="2" placeholder="Complete Address (House No, Area, City, Pincode) *" class="w-full text-xs p-2.5 border rounded-lg focus:outline-sky-600 bg-gray-50"></textarea>
-        </div>
-
-        <!-- Payment Option -->
-        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">3. Payment Option</p>
-        <div class="grid grid-cols-3 gap-2 mb-4">
-          <label class="border p-2 rounded-lg text-center cursor-pointer text-xs flex flex-col items-center justify-center gap-1 bg-gray-50">
-            <input type="radio" name="payment_mode" value="Cash on Delivery" checked class="accent-sky-600" />
-            <span class="font-medium text-[11px]">Cash on Delivery</span>
-          </label>
-          <label class="border p-2 rounded-lg text-center cursor-pointer text-xs flex flex-col items-center justify-center gap-1 bg-gray-50">
-            <input type="radio" name="payment_mode" value="UPI / Online Pay" class="accent-sky-600" />
-            <span class="font-medium text-[11px]">UPI / Online</span>
-          </label>
-          <label class="border p-2 rounded-lg text-center cursor-pointer text-xs flex flex-col items-center justify-center gap-1 bg-gray-50">
-            <input type="radio" name="payment_mode" value="Pay at Store (Pickup)" class="accent-sky-600" />
-            <span class="font-medium text-[11px]">Pay at Store</span>
-          </label>
-        </div>
-
-        <!-- Invoice Type Option -->
-        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">4. Invoice Preference</p>
-        <div class="space-y-2 mb-4">
-          <select id="invoice-type" onchange="window.toggleGstInput()" class="w-full text-xs p-2.5 border rounded-lg focus:outline-sky-600 bg-gray-50 font-medium">
-            <option value="Regular Bill">Standard Bill (Retail)</option>
-            <option value="GST Tax Invoice">GST Tax Invoice (Commercial)</option>
-          </select>
-          <input type="text" id="cust-gst" placeholder="GSTIN / Business Name (Optional)" class="w-full text-xs p-2.5 border rounded-lg focus:outline-sky-600 bg-gray-50 hidden" />
+      <!-- Demo Add Product Controls (No-Print) -->
+      <div class="no-print p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+        <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Quick Add Demo Items:</p>
+        <div class="flex flex-wrap gap-1.5">
+          <button onclick="addToCart('Agnese Neo One Piece Toilet - S220', 18990)" 
+                  class="bg-slate-800 text-white text-[11px] px-2.5 py-1 rounded-lg hover:bg-slate-700">
+            + Toilet (₹18,990)
+          </button>
+          <button onclick="addToCart('Designer Ceramic Wash Basin', 4500)" 
+                  class="bg-slate-800 text-white text-[11px] px-2.5 py-1 rounded-lg hover:bg-slate-700">
+            + Basin (₹4,500)
+          </button>
+          <button onclick="clearCart()" class="text-[11px] text-red-500 font-semibold ml-auto hover:underline">
+            Clear All
+          </button>
         </div>
       </div>
 
-      <!-- Total & Submit -->
-      <div class="border-t pt-3 mt-2 space-y-3">
-        <div class="flex justify-between font-bold text-base">
-          <span>Total Amount:</span>
-          <span class="text-sky-700">₹<span id="cart-total-price">0</span></span>
+      <!-- 2. Cart Items Table -->
+      <div>
+        <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Order Items Breakdown</h2>
+        <div id="cart-items" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+          <!-- JS Dynamic Cart Items -->
         </div>
-        <button onclick="window.orderViaWhatsApp()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md">
-          💬 Send Order & Invoice Request
+      </div>
+
+      <!-- 3. Coupon Code Section (No-Print) -->
+      <div class="no-print bg-gray-50 p-2.5 rounded-xl border border-gray-200">
+        <div class="flex gap-2">
+          <input type="text" id="coupon-code" placeholder="Coupon Code (SAN500)" 
+                 class="w-full text-xs p-2 rounded-lg border uppercase focus:outline-none focus:ring-1 focus:ring-slate-900">
+          <button onclick="applyCoupon()" class="bg-slate-900 text-white text-xs px-3 py-2 rounded-lg font-semibold hover:bg-slate-800 transition">
+            Apply
+          </button>
+        </div>
+        <p id="coupon-msg" class="text-[11px] hidden font-semibold mt-1.5"></p>
+      </div>
+
+      <!-- 4. Invoice Math Calculation -->
+      <div class="bg-slate-50 p-3.5 rounded-xl space-y-1.5 text-xs border border-gray-200">
+        <div class="flex justify-between text-gray-600">
+          <span>Subtotal</span>
+          <span id="invoice-subtotal" class="font-semibold text-gray-800">₹0</span>
+        </div>
+        
+        <div id="discount-row" class="flex justify-between text-emerald-600 hidden">
+          <span>Coupon Discount</span>
+          <span id="invoice-discount" class="font-semibold">-₹0</span>
+        </div>
+        
+        <div class="flex justify-between text-emerald-600">
+          <span>Delivery Charges</span>
+          <span class="font-bold">FREE</span>
+        </div>
+        
+        <div class="flex justify-between text-gray-600">
+          <span>GST / Taxes</span>
+          <span>Included</span>
+        </div>
+        
+        <hr class="my-2 border-gray-300" />
+        
+        <div class="flex justify-between text-base font-black text-gray-900">
+          <span>Total Payable</span>
+          <span id="invoice-total" class="text-blue-600">₹0</span>
+        </div>
+      </div>
+
+      <!-- 5. Warranty & Quality Assurance Tag -->
+      <div class="bg-amber-50 border border-amber-200 text-amber-900 p-2.5 rounded-xl text-xs flex items-center gap-2">
+        <span class="text-base">🛡️</span>
+        <div>
+          <p class="font-bold text-[11px]">Sanitary Mart Warranty</p>
+          <p class="text-[10px] text-amber-700">10-Year Ceramic & Structural Guarantee Included.</p>
+        </div>
+      </div>
+
+      <!-- 6. Payment Selection -->
+      <div class="no-print">
+        <label class="text-xs font-bold text-gray-700 block mb-1">Payment Method:</label>
+        <div class="flex gap-4 text-xs font-medium">
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <input type="radio" name="payment" value="Cash on Delivery" checked class="accent-slate-900">
+            Cash on Delivery
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <input type="radio" name="payment" value="Online UPI / Prepaid" class="accent-slate-900">
+            Online UPI
+          </label>
+        </div>
+      </div>
+
+      <!-- 7. Address & Live GPS Pin -->
+      <div class="space-y-1">
+        <div class="flex justify-between items-center">
+          <label class="text-xs font-bold text-gray-700">Delivery Address:</label>
+          <button onclick="fetchGPSLocation()" class="no-print text-[11px] text-blue-600 font-semibold flex items-center gap-1 hover:underline">
+            📍 Fetch GPS Location
+          </button>
+        </div>
+        <textarea id="delivery-address" rows="2" placeholder="Apna pura address yahan darj karein..." 
+                  class="w-full text-xs p-2 border rounded-lg focus:ring-1 focus:ring-slate-900 outline-none"></textarea>
+      </div>
+
+      <!-- 8. Action Buttons (No-Print) -->
+      <div class="no-print space-y-2 pt-2">
+        
+        <!-- Primary Action: WhatsApp -->
+        <button onclick="sendWhatsAppOrder()" 
+                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition">
+          💬 WhatsApp Par Order Send Karein
         </button>
+
+        <div class="grid grid-cols-2 gap-2">
+          <!-- Print Receipt Button -->
+          <button onclick="window.print()" 
+                  class="bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition">
+            🖨️ Print Receipt
+          </button>
+
+          <!-- PDF Download Button -->
+          <button onclick="downloadPDF()" 
+                  class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition">
+            📄 Download PDF
+          </button>
+        </div>
+
       </div>
+
     </div>
   </div>
 
-  <!-- Firebase & App Script -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+  <!-- JavaScript Logic -->
+  <script>
+    // Initial Cart Setup
+    let cart = [
+      { id: 1, name: "Agnese Neo One Piece Toilet - S220", price: 18990, qty: 1 }
+    ];
 
-    // ✅ APKA UPDATED WHATSAPP NUMBER
-    const MY_WHATSAPP_NUMBER = "919024686665"; 
+    // Apna Sanitary Mart ka WhatsApp Number yahan likhein (With Country Code)
+    const whatsappNumber = "919876543210"; 
+    
+    let discountAmount = 0;
+    let gpsLink = "";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCuhd6WeneZFqkScgyahmkzGPV-U78Zb0s",
-      authDomain: "sanitarymart-65014.firebaseapp.com",
-      databaseURL: "https://sanitarymart-65014-default-rtdb.firebaseio.com",
-      projectId: "sanitarymart-65014",
-      storageBucket: "sanitarymart-65014.firebasestorage.app",
-      messagingSenderId: "285578370716",
-      appId: "1:285578370716:web:c47f43f25ad2ab86b25759",
-      measurementId: "G-0XJC8RN90V"
-    };
+    // Render Cart & Calculate Total
+    function renderCart() {
+      const container = document.getElementById("cart-items");
+      let subtotal = 0;
+      container.innerHTML = "";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const productsRef = ref(db, 'products');
-
-    let allProductsData = [];
-    let cart = [];
-    let currentCategory = 'All';
-    let searchQuery = '';
-    let currentSort = 'default';
-
-    onValue(productsRef, (snapshot) => {
-      document.getElementById("loading").classList.add("hidden");
-      document.getElementById("product-grid").classList.remove("hidden");
-
-      if (!snapshot.exists()) {
-        document.getElementById("product-grid").innerHTML = `<div class="col-span-2 text-center py-10 text-gray-500 font-semibold">Database me products nahi mile!</div>`;
-        return;
+      if (cart.length === 0) {
+        container.innerHTML = `<p class="text-xs text-gray-400 text-center py-3">Cart khali hai!</p>`;
+      } else {
+        cart.forEach((item, index) => {
+          const itemTotal = item.price * item.qty;
+          subtotal += itemTotal;
+          container.innerHTML += `
+            <div class="flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-100 text-xs">
+              <div class="flex-1 pr-2">
+                <p class="font-bold text-gray-800">${item.name}</p>
+                <p class="text-gray-500">₹${item.price.toLocaleString('en-IN')} × ${item.qty}</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-gray-900">₹${itemTotal.toLocaleString('en-IN')}</span>
+                <button onclick="removeItem(${index})" class="no-print text-red-500 hover:text-red-700 font-bold ml-1">✕</button>
+              </div>
+            </div>`;
+        });
       }
 
-      allProductsData = [];
-      snapshot.forEach((child) => {
-        allProductsData.push({ key: child.key, ...child.val() });
-      });
-
-      renderProducts();
-    });
-
-    function renderProducts() {
-      const grid = document.getElementById("product-grid");
-      grid.innerHTML = "";
-
-      let filtered = allProductsData.filter(item => {
-        const name = (item.title || item.name || item.productName || "").toLowerCase();
-        const cat = (item.category || item.type || item.cat || "").toLowerCase().trim();
-        const selected = currentCategory.toLowerCase().trim();
-
-        const matchSearch = name.includes(searchQuery.toLowerCase());
-
-        let matchCat = false;
-        if (selected === 'all' || selected.includes('all')) {
-          matchCat = true;
-        } else if (selected.includes('tap') || selected.includes('shower') || selected.includes('faucet')) {
-          matchCat = cat.includes('tap') || cat.includes('shower') || cat.includes('faucet') || cat.includes('mixer');
-        } else if (selected.includes('sanitary')) {
-          matchCat = cat.includes('sanitary') || cat.includes('basin') || cat.includes('seat');
-        } else if (selected.includes('health')) {
-          matchCat = cat.includes('health') || cat.includes('spray');
-        } else {
-          matchCat = cat === selected;
-        }
-
-        return matchCat && matchSearch;
-      });
-
-      if (currentSort === 'low-high') filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
-      else if (currentSort === 'high-low') filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
-
-      document.getElementById("product-count-text").innerText = `${filtered.length} Items Available`;
-
-      if (filtered.length === 0) {
-        grid.innerHTML = `
-          <div class="col-span-2 text-center py-10 text-gray-500 font-semibold">
-            "${currentCategory}" me koyi product nahi mila!<br>
-            <button onclick="window.filterCategory('All')" class="mt-2 text-xs text-sky-700 font-bold underline">
-              All Products Dekhein
-            </button>
-          </div>`;
-        return;
-      }
-
-      filtered.forEach((item) => {
-        const name = item.title || item.name || item.productName || "Sanitary Item";
-        const imgSrc = item.image || item.imageUrl || item.img || "https://via.placeholder.com/300?text=Sanitary+Mart";
-        const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
-
-        grid.innerHTML += `
-          <div class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
-            ${item.discount ? `<span class="absolute top-2 left-2 bg-yellow-400 text-black text-[10px] font-bold px-2 py-0.5 rounded z-10">${item.discount}</span>` : ''}
-
-            <div class="w-full h-36 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center relative">
-              <img src="${imgSrc}" alt="Product" class="w-full h-full object-contain p-1" onerror="this.onerror=null; this.src='https://via.placeholder.com/300?text=No+Image';" />
-            </div>
-
-            <div class="product-title" title="${name}">${name}</div>
-
-            <div class="flex items-baseline gap-1.5 my-1">
-              <span class="text-xs text-gray-400 line-through">₹${item.originalPrice || (item.price ? item.price + 500 : '')}</span>
-              <span class="text-base font-extrabold text-red-600">₹${item.price || 0}</span>
-            </div>
-
-            <button onclick='window.addToCart(${itemJson})' class="w-full mt-1 bg-sky-500 hover:bg-sky-600 text-white font-bold py-1.5 rounded-xl text-xs active:scale-95 transition-all">
-              Add to Cart
-            </button>
-          </div>
-        `;
-      });
+      const total = Math.max(0, subtotal - discountAmount);
+      document.getElementById("invoice-subtotal").innerText = "₹" + subtotal.toLocaleString('en-IN');
+      document.getElementById("invoice-total").innerText = "₹" + total.toLocaleString('en-IN');
     }
 
-    window.filterCategory = function(catName) {
-      currentCategory = catName;
-      document.querySelectorAll('.cat-btn').forEach(btn => {
-        const text = btn.innerText.trim().toLowerCase();
-        if (text === catName.toLowerCase() || (catName === 'All' && text.includes('all'))) {
-          btn.classList.add('active', 'bg-sky-600', 'text-white', 'border-sky-600');
-          btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
-        } else {
-          btn.classList.remove('active', 'bg-sky-600', 'text-white', 'border-sky-600');
-          btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
-        }
-      });
-      renderProducts();
-    };
-
-    window.handleSearch = function() {
-      searchQuery = document.getElementById("search-input").value;
-      renderProducts();
-    };
-
-    window.handleSort = function() {
-      currentSort = document.getElementById("sort-select").value;
-      renderProducts();
-    };
-
-    // Cart Logic
-    window.addToCart = function(item) {
-      const name = item.title || item.name || item.productName || "Sanitary Item";
-      cart.push({ name, price: Number(item.price) || 0 });
-      window.updateCartUI();
-    };
-
-    window.updateCartUI = function() {
-      document.getElementById("cart-count").innerText = cart.length;
-      const container = document.getElementById("cart-items-container");
-      container.innerHTML = "";
-      let total = 0;
-
-      if(cart.length === 0) {
-        container.innerHTML = `<p class="text-center text-gray-400 py-4 text-xs">Aapka cart khali hai!</p>`;
-      }
-
-      cart.forEach((item, index) => {
-        total += item.price;
-        container.innerHTML += `
-          <div class="flex justify-between items-center bg-gray-50 p-2 rounded-lg border text-xs">
-            <div>
-              <p class="font-bold text-gray-800">${item.name}</p>
-              <p class="text-sky-700 font-semibold">₹${item.price}</p>
-            </div>
-            <button onclick="window.removeFromCart(${index})" class="text-red-500 font-bold">Remove</button>
-          </div>
-        `;
-      });
-
-      document.getElementById("cart-total-price").innerText = total;
-    };
-
-    window.removeFromCart = function(index) {
-      cart.splice(index, 1);
-      window.updateCartUI();
-    };
-
-    window.openCartModal = function() {
-      window.updateCartUI();
-      document.getElementById("cart-modal").classList.remove("hidden");
-    };
-
-    window.closeCartModal = function() {
-      document.getElementById("cart-modal").classList.add("hidden");
-    };
-
-    window.toggleGstInput = function() {
-      const type = document.getElementById("invoice-type").value;
-      const gstInput = document.getElementById("cust-gst");
-      if (type === "GST Tax Invoice") {
-        gstInput.classList.remove("hidden");
+    // Add Product
+    function addToCart(name, price) {
+      const existing = cart.find(item => item.name === name);
+      if (existing) {
+        existing.qty += 1;
       } else {
-        gstInput.classList.add("hidden");
+        cart.push({ id: Date.now(), name, price, qty: 1 });
       }
-    };
+      renderCart();
+    }
 
-    // Upgraded WhatsApp Message Dispatcher
-    window.orderViaWhatsApp = function() {
+    // Remove Product
+    function removeItem(index) {
+      cart.splice(index, 1);
+      renderCart();
+    }
+
+    // Clear Cart
+    function clearCart() {
+      cart = [];
+      discountAmount = 0;
+      document.getElementById("discount-row").classList.add("hidden");
+      document.getElementById("coupon-msg").classList.add("hidden");
+      renderCart();
+    }
+
+    // Apply Coupon Code
+    function applyCoupon() {
+      const code = document.getElementById("coupon-code").value.trim().toUpperCase();
+      const msg = document.getElementById("coupon-msg");
+      const discountRow = document.getElementById("discount-row");
+
+      if (code === "SAN500") {
+        discountAmount = 500;
+        msg.innerText = "✓ Coupon SAN500 Applied! (₹500 Discount)";
+        msg.className = "text-[11px] font-semibold text-emerald-600 mt-1.5";
+        document.getElementById("invoice-discount").innerText = "-₹500";
+        discountRow.classList.remove("hidden");
+      } else if (code === "SAN1000") {
+        discountAmount = 1000;
+        msg.innerText = "✓ Coupon SAN1000 Applied! (₹1,000 Discount)";
+        msg.className = "text-[11px] font-semibold text-emerald-600 mt-1.5";
+        document.getElementById("invoice-discount").innerText = "-₹1,000";
+        discountRow.classList.remove("hidden");
+      } else {
+        discountAmount = 0;
+        msg.innerText = "✕ Invalid Coupon Code";
+        msg.className = "text-[11px] font-semibold text-red-500 mt-1.5";
+        discountRow.classList.add("hidden");
+      }
+      msg.classList.remove("hidden");
+      renderCart();
+    }
+
+    // Fetch GPS Live Pin
+    function fetchGPSLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            gpsLink = `https://maps.google.com/?q=${lat},${lon}`;
+            const addrBox = document.getElementById("delivery-address");
+            addrBox.value += (addrBox.value ? "\n" : "") + `[Google Maps Pin: ${gpsLink}]`;
+            alert("📍 Location attached successfully!");
+          },
+          () => alert("Location permission allow karein.")
+        );
+      } else {
+        alert("Browser me GPS support nahi hai.");
+      }
+    }
+
+    // Send WhatsApp Order
+    function sendWhatsAppOrder() {
       if (cart.length === 0) {
-        alert("Pehle cart me koyi product add karein!");
+        alert("Cart khali hai!");
         return;
       }
 
-      const name = document.getElementById("cust-name").value.trim();
-      const phone = document.getElementById("cust-phone").value.trim();
-      const address = document.getElementById("cust-address").value.trim();
-      const paymentMode = document.querySelector('input[name="payment_mode"]:checked').value;
-      const invoiceType = document.getElementById("invoice-type").value;
-      const gstInfo = document.getElementById("cust-gst").value.trim();
+      const address = document.getElementById("delivery-address").value.trim();
+      const payMode = document.querySelector('input[name="payment"]:checked').value;
 
-      if (!name || !phone || !address) {
-        alert("Kripya Naam, Mobile Number aur Complete Address bharein!");
+      if (!address) {
+        alert("Kripya Delivery Address darj karein!");
         return;
       }
 
-      let message = `🛍️ *NEW ORDER - SANITARY MART*\n`;
-      message += `------------------------------------\n`;
-      message += `👤 *Customer Details:*\n`;
-      message += `• *Name:* ${name}\n`;
-      message += `• *Phone:* ${phone}\n`;
-      message += `• *Address:* ${address}\n\n`;
+      let subtotal = 0;
+      let itemsText = "";
 
-      message += `📦 *Ordered Items:*\n`;
       cart.forEach((item, i) => {
-        message += `${i + 1}. ${item.name} - ₹${item.price}\n`;
+        const itemTotal = item.price * item.qty;
+        subtotal += itemTotal;
+        itemsText += `${i + 1}. ${item.name} (Qty: ${item.qty}) - ₹${itemTotal.toLocaleString('en-IN')}\n`;
       });
 
-      const totalPrice = document.getElementById("cart-total-price").innerText;
-      message += `\n💰 *Total Amount:* ₹${totalPrice}\n`;
-      message += `💳 *Payment Method:* ${paymentMode}\n`;
-      message += `📄 *Invoice Type:* ${invoiceType}\n`;
+      const grandTotal = Math.max(0, subtotal - discountAmount);
 
-      if (invoiceType === "GST Tax Invoice" && gstInfo) {
-        message += `🏢 *GSTIN / Details:* ${gstInfo}\n`;
-      }
+      let msg = 
+`*Namaste Sanitary Mart!* 🙏
+Mujhe yeh order place karna hai:
 
-      message += `------------------------------------\n`;
-      message += `Kripya mera order confirm karein aur delivery timing batayein. Thank you!`;
+📋 *ORDER INVOICE DETAILS:*
+${itemsText}--------------------------------
+💰 *Total Payable:* ₹${grandTotal.toLocaleString('en-IN')}
+💳 *Payment Type:* ${payMode}
+🛡️ *Warranty:* 10-Year Ceramic Guarantee Included
+🚚 *Address:* ${address}
 
-      const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://api.whatsapp.com/send?phone=${MY_WHATSAPP_NUMBER}&text=${encodedMessage}`;
+Kripya order confirm karein!`;
 
-      window.open(whatsappUrl, '_blank');
-    };
+      window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    // Download PDF Invoice
+    function downloadPDF() {
+      const element = document.getElementById("invoice-card");
+      const opt = {
+        margin:       0.2,
+        filename:     'SanitaryMart_Invoice.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(element).save();
+    }
+
+    // Initial Load
+    renderCart();
   </script>
 </body>
 </html>
+
+
 
 
 
