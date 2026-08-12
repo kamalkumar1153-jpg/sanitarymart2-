@@ -3,39 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sanitary Mart - Order Invoice System</title>
-  
-  <!-- Tailwind CSS CDN -->
+  <title>Sanitary Mart - Cart Invoice</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- html2pdf Library for PDF Download -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-  <!-- Print Specific Styles (Printer par faltu buttons chhupa kar clean bill print karega) -->
   <style>
     @media print {
-      body {
-        background: white !important;
-        padding: 0 !important;
-      }
-      .no-print {
-        display: none !important;
-      }
-      #invoice-card {
-        box-shadow: none !important;
-        border: 1px solid #000 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-      }
+      body { background: white !important; padding: 0 !important; }
+      .no-print { display: none !important; }
+      #invoice-card { box-shadow: none !important; border: 1px solid #000 !important; width: 100% !important; }
     }
   </style>
 </head>
 <body class="bg-slate-100 min-h-screen p-2 sm:p-4 flex flex-col justify-center items-center font-sans">
 
-  <!-- Main Invoice Box -->
+  <!-- Invoice Container -->
   <div id="invoice-card" class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200 my-4">
     
-    <!-- 1. Header -->
+    <!-- Header -->
     <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
       <div>
         <h1 class="text-xl font-extrabold tracking-wide text-emerald-400">Sanitary Mart</h1>
@@ -48,36 +32,21 @@
 
     <div class="p-4 space-y-4">
 
-      <!-- Demo Add Product Controls (No-Print) -->
-      <div class="no-print p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-        <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Quick Add Demo Items:</p>
-        <div class="flex flex-wrap gap-1.5">
-          <button onclick="addToCart('Agnese Neo One Piece Toilet - S220', 18990)" 
-                  class="bg-slate-800 text-white text-[11px] px-2.5 py-1 rounded-lg hover:bg-slate-700">
-            + Toilet (₹18,990)
-          </button>
-          <button onclick="addToCart('Designer Ceramic Wash Basin', 4500)" 
-                  class="bg-slate-800 text-white text-[11px] px-2.5 py-1 rounded-lg hover:bg-slate-700">
-            + Basin (₹4,500)
-          </button>
-          <button onclick="clearCart()" class="text-[11px] text-red-500 font-semibold ml-auto hover:underline">
-            Clear All
-          </button>
-        </div>
-      </div>
-
-      <!-- 2. Cart Items Table -->
+      <!-- Order Items Breakdown -->
       <div>
-        <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Order Items Breakdown</h2>
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Order Items Breakdown</h2>
+          <button onclick="clearCart()" class="no-print text-[11px] text-red-500 font-semibold hover:underline">Clear Cart</button>
+        </div>
         <div id="cart-items" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-          <!-- JS Dynamic Cart Items -->
+          <!-- Items will render here dynamically -->
         </div>
       </div>
 
-      <!-- 3. Coupon Code Section (No-Print) -->
+      <!-- Coupon Code Section -->
       <div class="no-print bg-gray-50 p-2.5 rounded-xl border border-gray-200">
         <div class="flex gap-2">
-          <input type="text" id="coupon-code" placeholder="Coupon Code (SAN500)" 
+          <input type="text" id="coupon-code" placeholder="Coupon Code (eg. SAN500)" 
                  class="w-full text-xs p-2 rounded-lg border uppercase focus:outline-none focus:ring-1 focus:ring-slate-900">
           <button onclick="applyCoupon()" class="bg-slate-900 text-white text-xs px-3 py-2 rounded-lg font-semibold hover:bg-slate-800 transition">
             Apply
@@ -86,7 +55,7 @@
         <p id="coupon-msg" class="text-[11px] hidden font-semibold mt-1.5"></p>
       </div>
 
-      <!-- 4. Invoice Math Calculation -->
+      <!-- Calculation Breakdown -->
       <div class="bg-slate-50 p-3.5 rounded-xl space-y-1.5 text-xs border border-gray-200">
         <div class="flex justify-between text-gray-600">
           <span>Subtotal</span>
@@ -116,7 +85,7 @@
         </div>
       </div>
 
-      <!-- 5. Warranty & Quality Assurance Tag -->
+      <!-- Warranty Tag -->
       <div class="bg-amber-50 border border-amber-200 text-amber-900 p-2.5 rounded-xl text-xs flex items-center gap-2">
         <span class="text-base">🛡️</span>
         <div>
@@ -125,7 +94,7 @@
         </div>
       </div>
 
-      <!-- 6. Payment Selection -->
+      <!-- Payment Selection -->
       <div class="no-print">
         <label class="text-xs font-bold text-gray-700 block mb-1">Payment Method:</label>
         <div class="flex gap-4 text-xs font-medium">
@@ -140,7 +109,7 @@
         </div>
       </div>
 
-      <!-- 7. Address & Live GPS Pin -->
+      <!-- Address Input -->
       <div class="space-y-1">
         <div class="flex justify-between items-center">
           <label class="text-xs font-bold text-gray-700">Delivery Address:</label>
@@ -152,68 +121,62 @@
                   class="w-full text-xs p-2 border rounded-lg focus:ring-1 focus:ring-slate-900 outline-none"></textarea>
       </div>
 
-      <!-- 8. Action Buttons (No-Print) -->
+      <!-- Action Buttons -->
       <div class="no-print space-y-2 pt-2">
-        
-        <!-- Primary Action: WhatsApp -->
         <button onclick="sendWhatsAppOrder()" 
                 class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition">
           💬 WhatsApp Par Order Send Karein
         </button>
 
         <div class="grid grid-cols-2 gap-2">
-          <!-- Print Receipt Button -->
-          <button onclick="window.print()" 
-                  class="bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition">
+          <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition">
             🖨️ Print Receipt
           </button>
-
-          <!-- PDF Download Button -->
-          <button onclick="downloadPDF()" 
-                  class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition">
+          <button onclick="downloadPDF()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition">
             📄 Download PDF
           </button>
         </div>
-
       </div>
 
     </div>
   </div>
 
-  <!-- JavaScript Logic -->
   <script>
-    // Initial Cart Setup
-    let cart = [
+    const whatsappNumber = "919876543210"; // Apna WhatsApp Number Yahan Dalein
+
+    // LocalStorage se cart load karein taaki refresh karne par product na ute
+    let cart = JSON.parse(localStorage.getItem('sm_cart')) || [
       { id: 1, name: "Agnese Neo One Piece Toilet - S220", price: 18990, qty: 1 }
     ];
 
-    // Apna Sanitary Mart ka WhatsApp Number yahan likhein (With Country Code)
-    const whatsappNumber = "919876543210"; 
-    
     let discountAmount = 0;
     let gpsLink = "";
 
-    // Render Cart & Calculate Total
+    function saveAndRender() {
+      localStorage.setItem('sm_cart', JSON.stringify(cart));
+      renderCart();
+    }
+
     function renderCart() {
       const container = document.getElementById("cart-items");
       let subtotal = 0;
       container.innerHTML = "";
 
       if (cart.length === 0) {
-        container.innerHTML = `<p class="text-xs text-gray-400 text-center py-3">Cart khali hai!</p>`;
+        container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Aapka cart khali hai!</p>`;
       } else {
         cart.forEach((item, index) => {
           const itemTotal = item.price * item.qty;
           subtotal += itemTotal;
           container.innerHTML += `
-            <div class="flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-100 text-xs">
+            <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border border-gray-200 text-xs">
               <div class="flex-1 pr-2">
                 <p class="font-bold text-gray-800">${item.name}</p>
-                <p class="text-gray-500">₹${item.price.toLocaleString('en-IN')} × ${item.qty}</p>
+                <p class="text-gray-500 mt-0.5">₹${item.price.toLocaleString('en-IN')} × ${item.qty}</p>
               </div>
               <div class="flex items-center gap-2">
                 <span class="font-bold text-gray-900">₹${itemTotal.toLocaleString('en-IN')}</span>
-                <button onclick="removeItem(${index})" class="no-print text-red-500 hover:text-red-700 font-bold ml-1">✕</button>
+                <button onclick="removeItem(${index})" class="no-print text-red-500 hover:text-red-700 font-bold ml-1 text-sm">✕</button>
               </div>
             </div>`;
         });
@@ -224,33 +187,19 @@
       document.getElementById("invoice-total").innerText = "₹" + total.toLocaleString('en-IN');
     }
 
-    // Add Product
-    function addToCart(name, price) {
-      const existing = cart.find(item => item.name === name);
-      if (existing) {
-        existing.qty += 1;
-      } else {
-        cart.push({ id: Date.now(), name, price, qty: 1 });
-      }
-      renderCart();
-    }
-
-    // Remove Product
     function removeItem(index) {
       cart.splice(index, 1);
-      renderCart();
+      saveAndRender();
     }
 
-    // Clear Cart
     function clearCart() {
       cart = [];
       discountAmount = 0;
       document.getElementById("discount-row").classList.add("hidden");
       document.getElementById("coupon-msg").classList.add("hidden");
-      renderCart();
+      saveAndRender();
     }
 
-    // Apply Coupon Code
     function applyCoupon() {
       const code = document.getElementById("coupon-code").value.trim().toUpperCase();
       const msg = document.getElementById("coupon-msg");
@@ -262,12 +211,6 @@
         msg.className = "text-[11px] font-semibold text-emerald-600 mt-1.5";
         document.getElementById("invoice-discount").innerText = "-₹500";
         discountRow.classList.remove("hidden");
-      } else if (code === "SAN1000") {
-        discountAmount = 1000;
-        msg.innerText = "✓ Coupon SAN1000 Applied! (₹1,000 Discount)";
-        msg.className = "text-[11px] font-semibold text-emerald-600 mt-1.5";
-        document.getElementById("invoice-discount").innerText = "-₹1,000";
-        discountRow.classList.remove("hidden");
       } else {
         discountAmount = 0;
         msg.innerText = "✕ Invalid Coupon Code";
@@ -278,7 +221,6 @@
       renderCart();
     }
 
-    // Fetch GPS Live Pin
     function fetchGPSLocation() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -288,16 +230,13 @@
             gpsLink = `https://maps.google.com/?q=${lat},${lon}`;
             const addrBox = document.getElementById("delivery-address");
             addrBox.value += (addrBox.value ? "\n" : "") + `[Google Maps Pin: ${gpsLink}]`;
-            alert("📍 Location attached successfully!");
+            alert("📍 GPS Location attached!");
           },
           () => alert("Location permission allow karein.")
         );
-      } else {
-        alert("Browser me GPS support nahi hai.");
       }
     }
 
-    // Send WhatsApp Order
     function sendWhatsAppOrder() {
       if (cart.length === 0) {
         alert("Cart khali hai!");
@@ -323,42 +262,25 @@
 
       const grandTotal = Math.max(0, subtotal - discountAmount);
 
-      let msg = 
-`*Namaste Sanitary Mart!* 🙏
-Mujhe yeh order place karna hai:
-
-📋 *ORDER INVOICE DETAILS:*
-${itemsText}--------------------------------
-💰 *Total Payable:* ₹${grandTotal.toLocaleString('en-IN')}
-💳 *Payment Type:* ${payMode}
-🛡️ *Warranty:* 10-Year Ceramic Guarantee Included
-🚚 *Address:* ${address}
-
-Kripya order confirm karein!`;
+      let msg = `*Namaste Sanitary Mart!* 🙏\n\n📋 *ORDER INVOICE DETAILS:*\n${itemsText}--------------------------------\n💰 *Total Payable:* ₹${grandTotal.toLocaleString('en-IN')}\n💳 *Payment Type:* ${payMode}\n🛡️ *Warranty:* 10-Year Ceramic Guarantee Included\n🚚 *Address:* ${address}\n`;
 
       window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
-    // Download PDF Invoice
     function downloadPDF() {
       const element = document.getElementById("invoice-card");
-      const opt = {
-        margin:       0.2,
-        filename:     'SanitaryMart_Invoice.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-      };
-      html2pdf().set(opt).from(element).save();
+      html2pdf().set({
+        margin: 0.2,
+        filename: 'SanitaryMart_Invoice.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      }).from(element).save();
     }
 
     // Initial Load
-    renderCart();
+    saveAndRender();
   </script>
 </body>
 </html>
-
-
-
-
 
