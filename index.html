@@ -3,205 +3,212 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sanitary Mart - Advanced Cart & Invoice</title>
-  <!-- Tailwind CSS -->
+  <title>Sanitary Mart - Cart & Invoice</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- html2pdf JS library for PDF download -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
-<body class="bg-slate-100 min-h-screen p-3 flex justify-center items-center font-sans">
+<body class="bg-gray-100 min-h-screen p-4 flex flex-col items-center justify-center">
 
-  <!-- Main Invoice Card -->
-  <div id="invoice-card" class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+  <!-- Main Demo Container -->
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
     
-    <!-- Header -->
+    <!-- 1. Header -->
     <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
       <div>
-        <h1 class="text-xl font-extrabold tracking-wide text-emerald-400">Sanitary Mart</h1>
-        <p class="text-xs text-gray-300">Official Order Invoice</p>
+        <h1 class="text-xl font-bold tracking-wide">Sanitary Mart</h1>
+        <p class="text-xs text-gray-400">Order & Cart Invoice</p>
       </div>
-      <span class="bg-emerald-500/20 text-emerald-300 text-xs px-2.5 py-1 rounded-full border border-emerald-500/30 font-semibold">Live Summary</span>
+      <div class="bg-emerald-500/20 border border-emerald-500 text-emerald-400 text-xs px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Live Cart
+      </div>
     </div>
 
-    <div class="p-4 space-y-4">
-      <!-- Item List -->
-      <div>
-        <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Order Items</h2>
-        <div id="cart-items" class="space-y-2 max-h-40 overflow-y-auto">
-          <!-- JS dynamic content -->
+    <!-- 2. Product Selection (Demo Product Add) -->
+    <div class="p-4 bg-gray-50 border-b border-gray-200">
+      <p class="text-xs text-gray-500 font-semibold uppercase mb-2">Sample Product</p>
+      <div class="flex justify-between items-center bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+        <div>
+          <h3 class="font-bold text-gray-800 text-sm">Agnese Neo One Piece Toilet - S220</h3>
+          <p class="text-xs text-gray-500">Price: ₹18,990</p>
         </div>
+        <button onclick="addToCart('Agnese Neo One Piece Toilet - S220', 18990)" 
+                class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg font-medium transition">
+          + Cart Me Jodein
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. Dynamic Cart / Invoice View -->
+    <div class="p-4 space-y-4">
+      
+      <!-- Cart Header -->
+      <div class="flex justify-between items-center border-b pb-2">
+        <h2 class="text-base font-bold text-gray-800">📋 Cart Estimate Invoice</h2>
+        <button onclick="clearCart()" class="text-xs text-red-500 hover:underline">Clear All</button>
       </div>
 
-      <!-- Coupon Code Section -->
-      <div class="bg-gray-50 p-2.5 rounded-xl border border-gray-200 flex gap-2">
-        <input type="text" id="coupon-code" placeholder="Coupon Code (eg. SAN100)" class="w-full text-xs p-2 rounded-lg border uppercase focus:outline-none focus:ring-1 focus:ring-slate-900">
-        <button onclick="applyCoupon()" class="bg-slate-900 text-white text-xs px-3 py-2 rounded-lg font-semibold hover:bg-slate-800 transition">Apply</button>
+      <!-- Items List (Dynamically Populated by JS) -->
+      <div id="cart-items" class="space-y-3 max-h-48 overflow-y-auto pr-1">
+        <!-- JS se items yahan rendering hongi -->
       </div>
-      <p id="coupon-msg" class="text-[11px] hidden font-semibold"></p>
 
-      <!-- Invoice Breakdown -->
-      <div class="bg-slate-50 p-3.5 rounded-xl space-y-1.5 text-xs border border-gray-100">
+      <!-- Invoice Calculation Breakdown -->
+      <div class="bg-slate-50 p-4 rounded-xl space-y-2 text-xs border border-gray-100">
         <div class="flex justify-between text-gray-600">
           <span>Subtotal</span>
           <span id="invoice-subtotal" class="font-semibold text-gray-800">₹0</span>
         </div>
-        <div id="discount-row" class="flex justify-between text-emerald-600 hidden">
-          <span>Discount Applied</span>
-          <span id="invoice-discount" class="font-semibold">-₹0</span>
-        </div>
         <div class="flex justify-between text-emerald-600">
-          <span>Delivery</span>
-          <span class="font-bold">FREE</span>
+          <span>Delivery Charge</span>
+          <span class="font-medium">FREE</span>
         </div>
         <div class="flex justify-between text-gray-600">
-          <span>Taxes / GST</span>
-          <span>Included</span>
+          <span>GST / Taxes</span>
+          <span class="text-gray-500">Included</span>
         </div>
+        
         <hr class="my-2 border-gray-200" />
-        <div class="flex justify-between text-base font-black text-gray-900">
-          <span>Total Amount</span>
+        
+        <!-- Grand Total -->
+        <div class="flex justify-between text-base font-extrabold text-gray-900 pt-1">
+          <span>Total Payable</span>
           <span id="invoice-total" class="text-blue-600">₹0</span>
         </div>
       </div>
 
-      <!-- Payment Mode -->
-      <div>
-        <label class="text-xs font-bold text-gray-700 block mb-1">Payment Method:</label>
-        <div class="flex gap-4 text-xs font-medium">
-          <label class="flex items-center gap-1.5 cursor-pointer">
-            <input type="radio" name="payment" value="Cash on Delivery" checked class="accent-slate-900"> Cash on Delivery
-          </label>
-          <label class="flex items-center gap-1.5 cursor-pointer">
-            <input type="radio" name="payment" value="Online UPI / Scanner" class="accent-slate-900"> Online UPI
-          </label>
-        </div>
-      </div>
-
-      <!-- Address Input & Location Fetch -->
+      <!-- Address Input Field -->
       <div class="space-y-1">
-        <div class="flex justify-between items-center">
-          <label class="text-xs font-bold text-gray-700">Delivery Address:</label>
-          <button onclick="fetchGPSLocation()" class="text-[11px] text-blue-600 font-semibold flex items-center gap-1 hover:underline">
-            📍 Auto Fetch GPS
-          </button>
-        </div>
-        <textarea id="delivery-address" rows="2" placeholder="Pura address likhein..." class="w-full text-xs p-2 border rounded-lg focus:ring-1 focus:ring-slate-900 outline-none"></textarea>
+        <label class="text-xs font-semibold text-gray-700">Delivery Address:</label>
+        <textarea id="delivery-address" rows="2" placeholder="Apna pura address yahan likhein..." 
+                  class="w-full text-xs p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="space-y-2 pt-1">
-        <button onclick="sendWhatsAppOrder()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition">
-          💬 WhatsApp Par Direct Order
-        </button>
-        
-        <button onclick="downloadPDF()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition">
-          📄 Download PDF Invoice
-        </button>
-      </div>
+      <!-- Action Button -->
+      <button onclick="sendWhatsAppOrder()" 
+              class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition">
+        <span>💬 WhatsApp Par Order Send Karein</span>
+      </button>
 
     </div>
+
   </div>
 
+  <!-- JavaScript Logic -->
   <script>
-    let cart = [{ id: 1, name: "Agnese Neo One Piece Toilet - S220", price: 18990, qty: 1 }];
-    const whatsappNumber = "919876543210"; // Aapka WhatsApp Number
-    let discountAmount = 0;
-    let gpsLink = "";
+    // Sample Initial Cart Data
+    let cart = [
+      { id: 1, name: "Agnese Neo One Piece Toilet - S220", price: 18990, qty: 1 }
+    ];
 
+    // Sanitary Mart WhatsApp Number (Apna number yahan badlein)
+    const whatsappNumber = "919876543210"; 
+
+    // Function to Render Cart & Calculate Invoice
     function renderCart() {
-      const container = document.getElementById("cart-items");
-      let subtotal = 0;
-      container.innerHTML = "";
+      const cartContainer = document.getElementById("cart-items");
+      const subtotalEl = document.getElementById("invoice-subtotal");
+      const totalEl = document.getElementById("invoice-total");
 
-      cart.forEach((item, index) => {
-        const itemTotal = item.price * item.qty;
-        subtotal += itemTotal;
-        container.innerHTML += `
-          <div class="flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-100 text-xs">
-            <div>
-              <p class="font-semibold text-gray-800">${item.name}</p>
-              <p class="text-gray-500">₹${item.price.toLocaleString('en-IN')} × ${item.qty}</p>
-            </div>
-            <p class="font-bold text-gray-900">₹${itemTotal.toLocaleString('en-IN')}</p>
-          </div>`;
-      });
-
-      const total = Math.max(0, subtotal - discountAmount);
-      document.getElementById("invoice-subtotal").innerText = "₹" + subtotal.toLocaleString('en-IN');
-      document.getElementById("invoice-total").innerText = "₹" + total.toLocaleString('en-IN');
-    }
-
-    function applyCoupon() {
-      const code = document.getElementById("coupon-code").value.trim().toUpperCase();
-      const msg = document.getElementById("coupon-msg");
-      const discountRow = document.getElementById("discount-row");
-
-      if (code === "SAN100") {
-        discountAmount = 500; // ₹500 Discount
-        msg.innerText = "✓ Coupon SAN100 Applied! ₹500 Off";
-        msg.className = "text-[11px] font-semibold text-emerald-600";
-        document.getElementById("invoice-discount").innerText = "-₹500";
-        discountRow.classList.remove("hidden");
-      } else {
-        discountAmount = 0;
-        msg.innerText = "✕ Invalid Coupon Code";
-        msg.className = "text-[11px] font-semibold text-red-500";
-        discountRow.classList.add("hidden");
-      }
-      msg.classList.remove("hidden");
-      renderCart();
-    }
-
-    function fetchGPSLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(position => {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
-          gpsLink = `https://maps.google.com/?q=${lat},${lon}`;
-          const addrBox = document.getElementById("delivery-address");
-          addrBox.value += `\n[GPS Pin Location Attached]`;
-          alert("GPS Location Successfully Attached!");
-        }, () => {
-          alert("Location access deny ho gaya hai.");
-        });
-      }
-    }
-
-    function sendWhatsAppOrder() {
-      const address = document.getElementById("delivery-address").value.trim();
-      const payMode = document.querySelector('input[name="payment"]:checked').value;
-
-      if (!address) {
-        alert("Delivery Address bharna zaroori hai!");
+      if (cart.length === 0) {
+        cartContainer.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Cart khali hai!</p>`;
+        subtotalEl.innerText = "₹0";
+        totalEl.innerText = "₹0";
         return;
       }
 
       let subtotal = 0;
-      let itemsList = "";
-      cart.forEach((item, i) => {
+      cartContainer.innerHTML = "";
+
+      cart.forEach((item, index) => {
         const itemTotal = item.price * item.qty;
         subtotal += itemTotal;
-        itemsList += `${i + 1}. ${item.name} (Qty: ${item.qty}) - ₹${itemTotal.toLocaleString('en-IN')}\n`;
+
+        cartContainer.innerHTML += `
+          <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border border-gray-100 text-xs">
+            <div class="flex-1 pr-2">
+              <p class="font-bold text-gray-800">${item.name}</p>
+              <p class="text-gray-500 mt-0.5">₹${item.price.toLocaleString('en-IN')} × ${item.qty}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-gray-900">₹${itemTotal.toLocaleString('en-IN')}</span>
+              <button onclick="removeItem(${index})" class="text-red-500 hover:text-red-700 font-bold ml-1">✕</button>
+            </div>
+          </div>
+        `;
       });
 
-      const grandTotal = subtotal - discountAmount;
+      // Update Invoice Totals
+      subtotalEl.innerText = "₹" + subtotal.toLocaleString('en-IN');
+      totalEl.innerText = "₹" + subtotal.toLocaleString('en-IN');
+    }
 
-      let msg = `*Namaste Sanitary Mart!* 🙏\nNaya Order Place Hua Hai:\n\n📋 *INVOICE DETAILS:*\n${itemsList}--------------------------------\n💰 *Total:* ₹${grandTotal.toLocaleString('en-IN')}\n💳 *Payment Mode:* ${payMode}\n🚚 *Address:* ${address}\n`;
+    // Add Product to Cart
+    function addToCart(name, price) {
+      const existing = cart.find(item => item.name === name);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ id: Date.now(), name, price, qty: 1 });
+      }
+      renderCart();
+    }
 
-      if (gpsLink) {
-        msg += `📍 *Google Map Pin:* ${gpsLink}\n`;
+    // Remove Item
+    function removeItem(index) {
+      cart.splice(index, 1);
+      renderCart();
+    }
+
+    // Clear Cart
+    function clearCart() {
+      cart = [];
+      renderCart();
+    }
+
+    // Send Order & Invoice via WhatsApp
+    function sendWhatsAppOrder() {
+      if (cart.length === 0) {
+        alert("Aapka cart khali hai!");
+        return;
       }
 
-      window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank');
+      const address = document.getElementById("delivery-address").value.trim();
+      if (!address) {
+        alert("Kripya apna Delivery Address darj karein!");
+        return;
+      }
+
+      let totalAmount = 0;
+      let itemSummary = "";
+
+      cart.forEach((item, i) => {
+        const itemTotal = item.price * item.qty;
+        totalAmount += itemTotal;
+        itemSummary += `${i + 1}. ${item.name} (Qty: ${item.qty}) - ₹${itemTotal.toLocaleString('en-IN')}\n`;
+      });
+
+      // Format WhatsApp Message
+      const message = 
+`*Namaste Sanitary Mart!* 🙏
+Mujhe yeh order place karna hai:
+
+📋 *ORDER INVOICE DETAILS:*
+${itemSummary}
+--------------------------------
+💰 *Total Amount:* ₹${totalAmount.toLocaleString('en-IN')} (Cash on Delivery)
+🚚 *Delivery Address:* ${address}
+
+Kripya order confirm karein!`;
+
+      // Open WhatsApp Direct Link
+      const encodedMessage = encodeURIComponent(message);
+      window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
     }
 
-    function downloadPDF() {
-      const element = document.getElementById("invoice-card");
-      html2pdf().from(element).save("SanitaryMart_Invoice.pdf");
-    }
-
+    // Initial Run
     renderCart();
   </script>
 </body>
 </html>
+
 
