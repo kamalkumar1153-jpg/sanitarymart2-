@@ -55,13 +55,18 @@ function updateCategoryCounts() {
     if (pCat.includes('health') || pCat.includes('faucet')) healthCount++;
   });
 
-  document.getElementById('count-all').innerText = `(${allProducts.length})`;
-  document.getElementById('count-sanitary').innerText = `(${sanitaryCount})`;
-  document.getElementById('count-taps').innerText = `(${tapsCount})`;
-  document.getElementById('count-health').innerText = `(${healthCount})`;
+  const countAll = document.getElementById('count-all');
+  const countSanitary = document.getElementById('count-sanitary');
+  const countTaps = document.getElementById('count-taps');
+  const countHealth = document.getElementById('count-health');
+
+  if (countAll) countAll.innerText = `(${allProducts.length})`;
+  if (countSanitary) countSanitary.innerText = `(${sanitaryCount})`;
+  if (countTaps) countTaps.innerText = `(${tapsCount})`;
+  if (countHealth) countHealth.innerText = `(${healthCount})`;
 }
 
-// Render Products
+// Render Products with Exact Name Fallback
 function renderProducts(products) {
   const container = document.getElementById('container');
   container.innerHTML = '';
@@ -78,7 +83,8 @@ function renderProducts(products) {
     const productIndex = p._index !== undefined ? p._index : index;
     card.setAttribute('onclick', `openProductModalByIndex(${productIndex})`);
 
-    const title = p.name || p.title || p.productName || 'Sanitary Product';
+    // Smart Name & Price Fallbacks
+    const title = p.name || p.title || p.productName || p.label || 'Sanitary Product';
     const price = p.price || p.sellingPrice || 0;
     const oldPrice = p.oldPrice || p.originalPrice || p.mrp || Math.round(price * 1.25);
     const imgSrc = p.image || p.imageUrl || p.img || 'https://via.placeholder.com/150';
@@ -103,7 +109,7 @@ function renderProducts(products) {
   });
 }
 
-// Search & Clear Logic
+// Search & Filter Logic
 window.filterAndSort = function() {
   const searchInput = document.getElementById('search');
   const clearBtn = document.getElementById('clearSearch');
@@ -117,7 +123,7 @@ window.filterAndSort = function() {
   const currentCategory = activeBtn ? activeBtn.innerText.trim().toLowerCase() : 'all';
 
   let filtered = allProducts.filter(p => {
-    const pName = (p.name || p.title || p.productName || '').toLowerCase();
+    const pName = (p.name || p.title || p.productName || p.label || '').toLowerCase();
     const pCat = (p.category || p.cat || p.type || '').toLowerCase();
     
     const matchesSearch = searchQuery === '' || pName.includes(searchQuery) || pCat.includes(searchQuery);
@@ -142,7 +148,8 @@ window.filterAndSort = function() {
 };
 
 window.clearSearchInput = function() {
-  document.getElementById('search').value = '';
+  const searchInput = document.getElementById('search');
+  if (searchInput) searchInput.value = '';
   filterAndSort();
 };
 
@@ -152,49 +159,66 @@ window.filterData = function(category, btn) {
   filterAndSort();
 };
 
-// Modal & Image Lightbox Zoom
+// Product Modal & Image Lightbox Zoom
 window.openProductModalByIndex = function(index) {
   const product = allProducts.find(p => p._index === index) || allProducts[index];
   if (!product) return;
 
   selectedProduct = product;
 
-  const title = product.name || product.title || product.productName || 'Sanitary Product';
+  const title = product.name || product.title || product.productName || product.label || 'Sanitary Product';
   const price = product.price || product.sellingPrice || 0;
   const imgSrc = product.image || product.imageUrl || product.img || 'https://via.placeholder.com/150';
 
-  document.getElementById('m-img').src = imgSrc;
-  document.getElementById('m-name').innerText = title;
-  document.getElementById('m-price').innerText = '₹' + price;
-  document.getElementById('m-wa').href = `https://wa.me/919024686665?text=Hi,%20I%20am%20interested%20in%20${encodeURIComponent(title)}`;
+  const mImg = document.getElementById('m-img');
+  const mName = document.getElementById('m-name');
+  const mPrice = document.getElementById('m-price');
+  const mWa = document.getElementById('m-wa');
 
-  document.getElementById('prodModal').style.display = 'flex';
+  if (mImg) mImg.src = imgSrc;
+  if (mName) mName.innerText = title;
+  if (mPrice) mPrice.innerText = '₹' + price;
+  if (mWa) mWa.href = `https://wa.me/919024686665?text=Hi,%20I%20am%20interested%20in%20${encodeURIComponent(title)}`;
+
+  const prodModal = document.getElementById('prodModal');
+  if (prodModal) prodModal.style.display = 'flex';
 };
 
 window.openImageZoom = function() {
-  const currentImgSrc = document.getElementById('m-img').src;
-  document.getElementById('lightboxImg').src = currentImgSrc;
-  document.getElementById('imageZoomModal').style.display = 'flex';
+  const mImg = document.getElementById('m-img');
+  if (mImg) {
+    document.getElementById('lightboxImg').src = mImg.src;
+    document.getElementById('imageZoomModal').style.display = 'flex';
+  }
 };
 
 window.closeImageZoom = function() {
-  document.getElementById('imageZoomModal').style.display = 'none';
+  const imageZoomModal = document.getElementById('imageZoomModal');
+  if (imageZoomModal) imageZoomModal.style.display = 'none';
 };
 
 window.closeModal = function(modalId) {
-  document.getElementById(modalId).style.display = 'none';
+  const modal = document.getElementById(modalId);
+  if (modal) modal.style.display = 'none';
 };
 
-// Cart & WhatsApp Order Direct Integration
+// Add To Cart with Exact Product Name Storage
 window.addToCartByIndex = function(index) {
   const p = allProducts.find(item => item._index === index) || allProducts[index];
   if (p) {
-    const pTitle = p.name || p.title || 'Product';
+    const pTitle = p.name || p.title || p.productName || p.label || 'Sanitary Product';
+    const pPrice = p.price || p.sellingPrice || 0;
+    
     const exist = cart.find(item => item._index === p._index);
     if (exist) {
       exist.qty += 1;
     } else {
-      cart.push({ ...p, qty: 1 });
+      cart.push({ 
+        ...p, 
+        cartTitle: pTitle,
+        cartPrice: pPrice,
+        qty: 1 
+      });
     }
     updateCartUI();
     showToast(`${pTitle} cart me add ho gaya!`);
@@ -231,20 +255,21 @@ function updateCartUI() {
     let total = 0;
 
     cart.forEach(item => {
-      const pPrice = item.price || item.sellingPrice || 0;
-      const pTitle = item.name || item.title || 'Product';
+      const pTitle = item.cartTitle || item.name || item.title || item.productName || 'Sanitary Product';
+      const pPrice = item.cartPrice || item.price || item.sellingPrice || 0;
       total += pPrice * item.qty;
+      
       const row = document.createElement('div');
-      row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:13px;';
+      row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:13px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;';
       row.innerHTML = `
-        <div>
-          <strong>${pTitle}</strong><br>
-          <span style="color:#64748b;">₹${pPrice} x ${item.qty}</span>
+        <div style="flex: 1; padding-right: 8px;">
+          <strong style="color: #0f172a; font-size: 12px; display: block; line-height: 1.2;">${pTitle}</strong>
+          <span style="color:#64748b; font-size: 11px;">₹${pPrice} x ${item.qty}</span>
         </div>
-        <div>
-          <button onclick="changeQty(${item._index}, -1)" style="padding:2px 8px; border-radius:4px; border:1px solid #ccc;">-</button>
-          <span style="margin:0 6px; font-weight:bold;">${item.qty}</span>
-          <button onclick="changeQty(${item._index}, 1)" style="padding:2px 8px; border-radius:4px; border:1px solid #ccc;">+</button>
+        <div style="display: flex; align-items: center;">
+          <button onclick="changeQty(${item._index}, -1)" style="padding:2px 8px; border-radius:4px; border:1px solid #ccc; background:#f8fafc; font-weight:bold;">-</button>
+          <span style="margin:0 8px; font-weight:bold; font-size: 12px;">${item.qty}</span>
+          <button onclick="changeQty(${item._index}, 1)" style="padding:2px 8px; border-radius:4px; border:1px solid #ccc; background:#f8fafc; font-weight:bold;">+</button>
         </div>
       `;
       cartList.appendChild(row);
@@ -254,7 +279,7 @@ function updateCartUI() {
   }
 }
 
-// Send Order to WhatsApp & Save in Firebase Database
+// Send Order to WhatsApp & Save in Firebase Realtime Database
 window.sendWhatsAppOrder = function() {
   if (cart.length === 0) {
     alert("Pehle cart me products add karein!");
@@ -273,8 +298,8 @@ window.sendWhatsAppOrder = function() {
   let itemDetailsText = "";
 
   const orderItemsArray = cart.map(item => {
-    const pTitle = item.name || item.title || 'Product';
-    const pPrice = item.price || item.sellingPrice || 0;
+    const pTitle = item.cartTitle || item.name || item.title || item.productName || 'Sanitary Product';
+    const pPrice = item.cartPrice || item.price || item.sellingPrice || 0;
     const itemTotal = pPrice * item.qty;
     totalBill += itemTotal;
 
@@ -340,7 +365,8 @@ window.clearCart = function() {
 
 window.openCartModal = function() {
   updateCartUI();
-  document.getElementById('cartModal').style.display = 'flex';
+  const cartModal = document.getElementById('cartModal');
+  if (cartModal) cartModal.style.display = 'flex';
 };
 
 function showToast(msg) {
@@ -351,6 +377,7 @@ function showToast(msg) {
     setTimeout(() => { toast.style.display = 'none'; }, 2500);
   }
 }
+
 
 
 
