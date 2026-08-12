@@ -3,21 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sanitary Mart - Cart Invoice</title>
+  <title>Sanitary Mart - Advanced Cart & Invoice</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- html2pdf JS library for PDF download -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <style>
-    @media print {
-      body { background: white !important; padding: 0 !important; }
-      .no-print { display: none !important; }
-      #invoice-card { box-shadow: none !important; border: 1px solid #000 !important; width: 100% !important; }
-    }
-  </style>
 </head>
-<body class="bg-slate-100 min-h-screen p-2 sm:p-4 flex flex-col justify-center items-center font-sans">
+<body class="bg-slate-100 min-h-screen p-3 flex justify-center items-center font-sans">
 
-  <!-- Invoice Container -->
-  <div id="invoice-card" class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200 my-4">
+  <!-- Main Invoice Card -->
+  <div id="invoice-card" class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
     
     <!-- Header -->
     <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
@@ -25,179 +20,115 @@
         <h1 class="text-xl font-extrabold tracking-wide text-emerald-400">Sanitary Mart</h1>
         <p class="text-xs text-gray-300">Official Order Invoice</p>
       </div>
-      <span class="bg-emerald-500/20 text-emerald-300 text-xs px-2.5 py-1 rounded-full border border-emerald-500/30 font-semibold no-print">
-        Live Cart
-      </span>
+      <span class="bg-emerald-500/20 text-emerald-300 text-xs px-2.5 py-1 rounded-full border border-emerald-500/30 font-semibold">Live Summary</span>
     </div>
 
     <div class="p-4 space-y-4">
-
-      <!-- Order Items Breakdown -->
+      <!-- Item List -->
       <div>
-        <div class="flex justify-between items-center mb-2">
-          <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Order Items Breakdown</h2>
-          <button onclick="clearCart()" class="no-print text-[11px] text-red-500 font-semibold hover:underline">Clear Cart</button>
-        </div>
-        <div id="cart-items" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-          <!-- Items will render here dynamically -->
+        <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Order Items</h2>
+        <div id="cart-items" class="space-y-2 max-h-40 overflow-y-auto">
+          <!-- JS dynamic content -->
         </div>
       </div>
 
       <!-- Coupon Code Section -->
-      <div class="no-print bg-gray-50 p-2.5 rounded-xl border border-gray-200">
-        <div class="flex gap-2">
-          <input type="text" id="coupon-code" placeholder="Coupon Code (eg. SAN500)" 
-                 class="w-full text-xs p-2 rounded-lg border uppercase focus:outline-none focus:ring-1 focus:ring-slate-900">
-          <button onclick="applyCoupon()" class="bg-slate-900 text-white text-xs px-3 py-2 rounded-lg font-semibold hover:bg-slate-800 transition">
-            Apply
-          </button>
-        </div>
-        <p id="coupon-msg" class="text-[11px] hidden font-semibold mt-1.5"></p>
+      <div class="bg-gray-50 p-2.5 rounded-xl border border-gray-200 flex gap-2">
+        <input type="text" id="coupon-code" placeholder="Coupon Code (eg. SAN100)" class="w-full text-xs p-2 rounded-lg border uppercase focus:outline-none focus:ring-1 focus:ring-slate-900">
+        <button onclick="applyCoupon()" class="bg-slate-900 text-white text-xs px-3 py-2 rounded-lg font-semibold hover:bg-slate-800 transition">Apply</button>
       </div>
+      <p id="coupon-msg" class="text-[11px] hidden font-semibold"></p>
 
-      <!-- Calculation Breakdown -->
-      <div class="bg-slate-50 p-3.5 rounded-xl space-y-1.5 text-xs border border-gray-200">
+      <!-- Invoice Breakdown -->
+      <div class="bg-slate-50 p-3.5 rounded-xl space-y-1.5 text-xs border border-gray-100">
         <div class="flex justify-between text-gray-600">
           <span>Subtotal</span>
           <span id="invoice-subtotal" class="font-semibold text-gray-800">₹0</span>
         </div>
-        
         <div id="discount-row" class="flex justify-between text-emerald-600 hidden">
-          <span>Coupon Discount</span>
+          <span>Discount Applied</span>
           <span id="invoice-discount" class="font-semibold">-₹0</span>
         </div>
-        
         <div class="flex justify-between text-emerald-600">
-          <span>Delivery Charges</span>
+          <span>Delivery</span>
           <span class="font-bold">FREE</span>
         </div>
-        
         <div class="flex justify-between text-gray-600">
-          <span>GST / Taxes</span>
+          <span>Taxes / GST</span>
           <span>Included</span>
         </div>
-        
-        <hr class="my-2 border-gray-300" />
-        
+        <hr class="my-2 border-gray-200" />
         <div class="flex justify-between text-base font-black text-gray-900">
-          <span>Total Payable</span>
+          <span>Total Amount</span>
           <span id="invoice-total" class="text-blue-600">₹0</span>
         </div>
       </div>
 
-      <!-- Warranty Tag -->
-      <div class="bg-amber-50 border border-amber-200 text-amber-900 p-2.5 rounded-xl text-xs flex items-center gap-2">
-        <span class="text-base">🛡️</span>
-        <div>
-          <p class="font-bold text-[11px]">Sanitary Mart Warranty</p>
-          <p class="text-[10px] text-amber-700">10-Year Ceramic & Structural Guarantee Included.</p>
-        </div>
-      </div>
-
-      <!-- Payment Selection -->
-      <div class="no-print">
+      <!-- Payment Mode -->
+      <div>
         <label class="text-xs font-bold text-gray-700 block mb-1">Payment Method:</label>
         <div class="flex gap-4 text-xs font-medium">
           <label class="flex items-center gap-1.5 cursor-pointer">
-            <input type="radio" name="payment" value="Cash on Delivery" checked class="accent-slate-900">
-            Cash on Delivery
+            <input type="radio" name="payment" value="Cash on Delivery" checked class="accent-slate-900"> Cash on Delivery
           </label>
           <label class="flex items-center gap-1.5 cursor-pointer">
-            <input type="radio" name="payment" value="Online UPI / Prepaid" class="accent-slate-900">
-            Online UPI
+            <input type="radio" name="payment" value="Online UPI / Scanner" class="accent-slate-900"> Online UPI
           </label>
         </div>
       </div>
 
-      <!-- Address Input -->
+      <!-- Address Input & Location Fetch -->
       <div class="space-y-1">
         <div class="flex justify-between items-center">
           <label class="text-xs font-bold text-gray-700">Delivery Address:</label>
-          <button onclick="fetchGPSLocation()" class="no-print text-[11px] text-blue-600 font-semibold flex items-center gap-1 hover:underline">
-            📍 Fetch GPS Location
+          <button onclick="fetchGPSLocation()" class="text-[11px] text-blue-600 font-semibold flex items-center gap-1 hover:underline">
+            📍 Auto Fetch GPS
           </button>
         </div>
-        <textarea id="delivery-address" rows="2" placeholder="Apna pura address yahan darj karein..." 
-                  class="w-full text-xs p-2 border rounded-lg focus:ring-1 focus:ring-slate-900 outline-none"></textarea>
+        <textarea id="delivery-address" rows="2" placeholder="Pura address likhein..." class="w-full text-xs p-2 border rounded-lg focus:ring-1 focus:ring-slate-900 outline-none"></textarea>
       </div>
 
       <!-- Action Buttons -->
-      <div class="no-print space-y-2 pt-2">
-        <button onclick="sendWhatsAppOrder()" 
-                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition">
-          💬 WhatsApp Par Order Send Karein
+      <div class="space-y-2 pt-1">
+        <button onclick="sendWhatsAppOrder()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition">
+          💬 WhatsApp Par Direct Order
         </button>
-
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition">
-            🖨️ Print Receipt
-          </button>
-          <button onclick="downloadPDF()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition">
-            📄 Download PDF
-          </button>
-        </div>
+        
+        <button onclick="downloadPDF()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition">
+          📄 Download PDF Invoice
+        </button>
       </div>
 
     </div>
   </div>
 
   <script>
-    const whatsappNumber = "919876543210"; // Apna WhatsApp Number Yahan Dalein
-
-    // LocalStorage se cart load karein taaki refresh karne par product na ute
-    let cart = JSON.parse(localStorage.getItem('sm_cart')) || [
-      { id: 1, name: "Agnese Neo One Piece Toilet - S220", price: 18990, qty: 1 }
-    ];
-
+    let cart = [{ id: 1, name: "Agnese Neo One Piece Toilet - S220", price: 18990, qty: 1 }];
+    const whatsappNumber = "919876543210"; // Aapka WhatsApp Number
     let discountAmount = 0;
     let gpsLink = "";
-
-    function saveAndRender() {
-      localStorage.setItem('sm_cart', JSON.stringify(cart));
-      renderCart();
-    }
 
     function renderCart() {
       const container = document.getElementById("cart-items");
       let subtotal = 0;
       container.innerHTML = "";
 
-      if (cart.length === 0) {
-        container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Aapka cart khali hai!</p>`;
-      } else {
-        cart.forEach((item, index) => {
-          const itemTotal = item.price * item.qty;
-          subtotal += itemTotal;
-          container.innerHTML += `
-            <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border border-gray-200 text-xs">
-              <div class="flex-1 pr-2">
-                <p class="font-bold text-gray-800">${item.name}</p>
-                <p class="text-gray-500 mt-0.5">₹${item.price.toLocaleString('en-IN')} × ${item.qty}</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-gray-900">₹${itemTotal.toLocaleString('en-IN')}</span>
-                <button onclick="removeItem(${index})" class="no-print text-red-500 hover:text-red-700 font-bold ml-1 text-sm">✕</button>
-              </div>
-            </div>`;
-        });
-      }
+      cart.forEach((item, index) => {
+        const itemTotal = item.price * item.qty;
+        subtotal += itemTotal;
+        container.innerHTML += `
+          <div class="flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-100 text-xs">
+            <div>
+              <p class="font-semibold text-gray-800">${item.name}</p>
+              <p class="text-gray-500">₹${item.price.toLocaleString('en-IN')} × ${item.qty}</p>
+            </div>
+            <p class="font-bold text-gray-900">₹${itemTotal.toLocaleString('en-IN')}</p>
+          </div>`;
+      });
 
       const total = Math.max(0, subtotal - discountAmount);
       document.getElementById("invoice-subtotal").innerText = "₹" + subtotal.toLocaleString('en-IN');
       document.getElementById("invoice-total").innerText = "₹" + total.toLocaleString('en-IN');
-    }
-
-    function removeItem(index) {
-      cart.splice(index, 1);
-      saveAndRender();
-    }
-
-    function clearCart() {
-      cart = [];
-      discountAmount = 0;
-      document.getElementById("discount-row").classList.add("hidden");
-      document.getElementById("coupon-msg").classList.add("hidden");
-      saveAndRender();
     }
 
     function applyCoupon() {
@@ -205,16 +136,16 @@
       const msg = document.getElementById("coupon-msg");
       const discountRow = document.getElementById("discount-row");
 
-      if (code === "SAN500") {
-        discountAmount = 500;
-        msg.innerText = "✓ Coupon SAN500 Applied! (₹500 Discount)";
-        msg.className = "text-[11px] font-semibold text-emerald-600 mt-1.5";
+      if (code === "SAN100") {
+        discountAmount = 500; // ₹500 Discount
+        msg.innerText = "✓ Coupon SAN100 Applied! ₹500 Off";
+        msg.className = "text-[11px] font-semibold text-emerald-600";
         document.getElementById("invoice-discount").innerText = "-₹500";
         discountRow.classList.remove("hidden");
       } else {
         discountAmount = 0;
         msg.innerText = "✕ Invalid Coupon Code";
-        msg.className = "text-[11px] font-semibold text-red-500 mt-1.5";
+        msg.className = "text-[11px] font-semibold text-red-500";
         discountRow.classList.add("hidden");
       }
       msg.classList.remove("hidden");
@@ -223,63 +154,53 @@
 
     function fetchGPSLocation() {
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-            gpsLink = `https://maps.google.com/?q=${lat},${lon}`;
-            const addrBox = document.getElementById("delivery-address");
-            addrBox.value += (addrBox.value ? "\n" : "") + `[Google Maps Pin: ${gpsLink}]`;
-            alert("📍 GPS Location attached!");
-          },
-          () => alert("Location permission allow karein.")
-        );
+        navigator.geolocation.getCurrentPosition(position => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          gpsLink = `https://maps.google.com/?q=${lat},${lon}`;
+          const addrBox = document.getElementById("delivery-address");
+          addrBox.value += `\n[GPS Pin Location Attached]`;
+          alert("GPS Location Successfully Attached!");
+        }, () => {
+          alert("Location access deny ho gaya hai.");
+        });
       }
     }
 
     function sendWhatsAppOrder() {
-      if (cart.length === 0) {
-        alert("Cart khali hai!");
-        return;
-      }
-
       const address = document.getElementById("delivery-address").value.trim();
       const payMode = document.querySelector('input[name="payment"]:checked').value;
 
       if (!address) {
-        alert("Kripya Delivery Address darj karein!");
+        alert("Delivery Address bharna zaroori hai!");
         return;
       }
 
       let subtotal = 0;
-      let itemsText = "";
-
+      let itemsList = "";
       cart.forEach((item, i) => {
         const itemTotal = item.price * item.qty;
         subtotal += itemTotal;
-        itemsText += `${i + 1}. ${item.name} (Qty: ${item.qty}) - ₹${itemTotal.toLocaleString('en-IN')}\n`;
+        itemsList += `${i + 1}. ${item.name} (Qty: ${item.qty}) - ₹${itemTotal.toLocaleString('en-IN')}\n`;
       });
 
-      const grandTotal = Math.max(0, subtotal - discountAmount);
+      const grandTotal = subtotal - discountAmount;
 
-      let msg = `*Namaste Sanitary Mart!* 🙏\n\n📋 *ORDER INVOICE DETAILS:*\n${itemsText}--------------------------------\n💰 *Total Payable:* ₹${grandTotal.toLocaleString('en-IN')}\n💳 *Payment Type:* ${payMode}\n🛡️ *Warranty:* 10-Year Ceramic Guarantee Included\n🚚 *Address:* ${address}\n`;
+      let msg = `*Namaste Sanitary Mart!* 🙏\nNaya Order Place Hua Hai:\n\n📋 *INVOICE DETAILS:*\n${itemsList}--------------------------------\n💰 *Total:* ₹${grandTotal.toLocaleString('en-IN')}\n💳 *Payment Mode:* ${payMode}\n🚚 *Address:* ${address}\n`;
+
+      if (gpsLink) {
+        msg += `📍 *Google Map Pin:* ${gpsLink}\n`;
+      }
 
       window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
     function downloadPDF() {
       const element = document.getElementById("invoice-card");
-      html2pdf().set({
-        margin: 0.2,
-        filename: 'SanitaryMart_Invoice.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-      }).from(element).save();
+      html2pdf().from(element).save("SanitaryMart_Invoice.pdf");
     }
 
-    // Initial Load
-    saveAndRender();
+    renderCart();
   </script>
 </body>
 </html>
