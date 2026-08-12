@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sanitary Mart - Digital Showroom</title>
   
-  <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
 
@@ -15,45 +14,44 @@
 </head>
 <body>
 
-  <!-- Top Header -->
+  <!-- Clean Header -->
   <div class="header">
-    <div>
+    <div class="header-brand">
       <h1>Sanitary Mart</h1>
       <span class="subtitle">Digital Showroom</span>
     </div>
-    <div class="status-pill">
-      <span class="dot"></span> Live
-    </div>
   </div>
 
-  <!-- Announcement Ticker -->
   <div class="ticker">
     🎉 Flat 18% OFF on All Premium Showroom Items!
   </div>
 
-  <!-- Search Bar -->
+  <!-- Search Bar with Clear Button -->
   <div class="search-box">
-    <input type="text" id="search" placeholder="Search taps, showers, sanitaryware..." onkeyup="filterAndSort()">
-  </div>
-
-  <!-- Category Filter Pills -->
-  <div class="categories">
-    <button class="filter-btn active" onclick="filterData('All Products', this)">All Products</button>
-    <button class="filter-btn" onclick="filterData('Sanitaryware', this)">Sanitaryware</button>
-    <button class="filter-btn" onclick="filterData('Taps & Showers', this)">Taps & Showers</button>
-    <button class="filter-btn" onclick="filterData('Health Faucet', this)">Health Faucet</button>
-  </div>
-
-  <!-- Product Grid Container -->
-  <div class="product-grid" id="container">
-    <div class="loading-state">
-      <i class="fas fa-spinner fa-spin"></i>
-      <p>Firebase se products load ho rahe hain...</p>
+    <div class="search-wrapper">
+      <input type="text" id="search" placeholder="Search taps, showers, sanitaryware..." onkeyup="filterAndSort()">
+      <span class="clear-search" id="clearSearch" onclick="clearSearchInput()">&times;</span>
     </div>
   </div>
 
-  <!-- Floating Actions -->
-  <a href="https://wa.me/919024686665" class="float-wa" target="_blank" title="Chat on WhatsApp">
+  <!-- Dynamic Category Pills with Counters -->
+  <div class="categories" id="categoriesContainer">
+    <button class="filter-btn active" onclick="filterData('All Products', this)">All <span class="cat-count" id="count-all">(0)</span></button>
+    <button class="filter-btn" onclick="filterData('Sanitaryware', this)">Sanitaryware <span class="cat-count" id="count-sanitary">(0)</span></button>
+    <button class="filter-btn" onclick="filterData('Taps & Showers', this)">Taps & Showers <span class="cat-count" id="count-taps">(0)</span></button>
+    <button class="filter-btn" onclick="filterData('Health Faucet', this)">Health Faucet <span class="cat-count" id="count-health">(0)</span></button>
+  </div>
+
+  <!-- Products Grid -->
+  <div class="product-grid" id="container">
+    <div class="loading-state">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Loading products...</p>
+    </div>
+  </div>
+
+  <!-- Floating Action Buttons -->
+  <a href="https://wa.me/919024686665" class="float-wa" target="_blank" title="WhatsApp Inquiry">
     <i class="fab fa-whatsapp"></i>
   </a>
 
@@ -62,14 +60,16 @@
     <div class="cart-badge" id="cartCount">0</div>
   </div>
 
-  <!-- Toast Notification -->
   <div id="toast" class="toast"></div>
 
   <!-- Product Detail Modal -->
   <div id="prodModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeModal('prodModal')">&times;</span>
-      <img id="m-img" src="" alt="Product Image" class="modal-img">
+      <div class="img-zoom-container" onclick="openImageZoom()">
+        <img id="m-img" src="" alt="Product" class="modal-img">
+        <span class="zoom-hint"><i class="fas fa-search-plus"></i> Tap to Zoom</span>
+      </div>
       <h2 id="m-name" class="modal-title"></h2>
       <div id="m-price" class="modal-price"></div>
       <div class="modal-actions">
@@ -81,15 +81,31 @@
     </div>
   </div>
 
-  <!-- Cart Modal -->
+  <!-- Image Lightbox Zoom Modal -->
+  <div id="imageZoomModal" class="lightbox-modal" onclick="closeImageZoom()">
+    <span class="lightbox-close">&times;</span>
+    <img id="lightboxImg" src="" class="lightbox-content">
+  </div>
+
+  <!-- Cart & Checkout Modal -->
   <div id="cartModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeModal('cartModal')">&times;</span>
       <h2>Your Cart</h2>
+      
       <div id="cartList" class="cart-list"></div>
+
+      <div class="checkout-form" id="checkoutDetails" style="display: none; margin-top: 10px;">
+        <input type="text" id="custName" placeholder="Aapka Naam (Required)" required style="width:100%; padding:8px; margin-bottom:6px; border-radius:6px; border:1px solid #cbd5e1;">
+        <input type="tel" id="custPhone" placeholder="Mobile Number (Required)" required style="width:100%; padding:8px; margin-bottom:6px; border-radius:6px; border:1px solid #cbd5e1;">
+      </div>
+
       <div class="cart-summary">
         <div>Total: ₹<span id="cartTotal">0</span></div>
-        <button onclick="clearCart()" class="btn-secondary">Clear Cart</button>
+        <div style="display: flex; gap: 6px;">
+          <button onclick="clearCart()" class="btn-secondary">Clear</button>
+          <button onclick="sendWhatsAppOrder()" class="btn-whatsapp" style="font-size: 12px; padding: 6px 10px;">Order on WhatsApp</button>
+        </div>
       </div>
     </div>
   </div>
@@ -97,6 +113,7 @@
   <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
