@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sanitary Mart</title>
-  <!-- Tailwind CSS -->
+  <title>Sanitary Mart - Pro Edition</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .product-title {
@@ -27,37 +26,54 @@
     }
   </style>
 </head>
-<body class="bg-slate-100 min-h-screen pb-20">
+<body class="bg-slate-100 min-h-screen pb-24">
 
   <!-- Header -->
-  <header class="bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-10">
-    <div class="flex items-center gap-2">
-      <span class="text-teal-600 text-2xl">🚿</span>
-      <h1 class="text-xl font-bold text-teal-800">Sanitary Mart</h1>
+  <header class="bg-white p-4 shadow-sm sticky top-0 z-20">
+    <div class="flex justify-between items-center mb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-teal-600 text-2xl">🚿</span>
+        <h1 class="text-xl font-bold text-teal-800">Sanitary Mart</h1>
+      </div>
+      
+      <button onclick="openCartModal()" class="border border-blue-500 text-blue-600 px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5 active:scale-95 transition-all">
+        🛒 Cart <span id="cart-count" class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">0</span>
+      </button>
     </div>
-    <div class="border border-blue-500 text-blue-600 px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5">
-      🛒 Cart <span id="cart-count" class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">0</span>
+
+    <!-- Live Search Bar -->
+    <div class="relative">
+      <input 
+        type="text" 
+        id="search-input" 
+        oninput="handleSearch()"
+        placeholder="Search Taps, Basins, Showers, Faucets..." 
+        class="w-full pl-10 pr-4 py-2 bg-slate-100 rounded-full text-sm text-gray-800 border border-slate-200 focus:outline-none focus:border-teal-600"
+      />
+      <span class="absolute left-3.5 top-2.5 text-gray-400 text-sm">🔍</span>
     </div>
   </header>
 
-  <!-- Category Filter Buttons (Working & Added Health Faucets) -->
-  <div class="p-4 flex gap-2 overflow-x-auto scrollbar-none" id="category-container">
-    <button onclick="filterCategory('All')" class="cat-btn active bg-teal-700 text-white border border-teal-700 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">
-      All Products
-    </button>
-    <button onclick="filterCategory('Taps & Faucets')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">
-      Taps & Faucets
-    </button>
-    <button onclick="filterCategory('Wash Basins')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">
-      Wash Basins
-    </button>
-    <!-- Health Faucets Button Added -->
-    <button onclick="filterCategory('Health Faucets')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">
-      Health Faucets
-    </button>
+  <!-- Categories & Sorting Bar -->
+  <div class="p-4 space-y-3">
+    <div class="flex gap-2 overflow-x-auto scrollbar-none" id="category-container">
+      <button onclick="filterCategory('All')" class="cat-btn active bg-teal-700 text-white border border-teal-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">All</button>
+      <button onclick="filterCategory('Taps & Faucets')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Taps & Faucets</button>
+      <button onclick="filterCategory('Wash Basins')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Wash Basins</button>
+      <button onclick="filterCategory('Health Faucets')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Health Faucets</button>
+    </div>
+
+    <div class="flex justify-between items-center text-xs text-gray-500 px-1">
+      <span id="product-count-text">Loading items...</span>
+      <select id="sort-select" onchange="handleSort()" class="bg-transparent border-none font-semibold text-teal-800 focus:outline-none cursor-pointer">
+        <option value="default">Sort: Default</option>
+        <option value="low-high">Price: Low to High</option>
+        <option value="high-low">Price: High to Low</option>
+      </select>
+    </div>
   </div>
 
-  <!-- Main Container -->
+  <!-- Product Grid -->
   <main class="px-4">
     <div id="loading" class="text-center py-12 text-gray-500 font-medium">
       Sanitary Mart Firebase se connect ho raha hai...
@@ -65,6 +81,57 @@
 
     <div id="product-grid" class="grid grid-cols-2 gap-3.5 hidden"></div>
   </main>
+
+  <!-- Product Detail Modal (Pop-up) -->
+  <div id="detail-modal" class="fixed inset-0 bg-black/60 z-30 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-2xl p-5 relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeDetailModal()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
+      
+      <div class="w-full h-48 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center mb-4">
+        <img id="modal-img" src="" alt="Detail" class="w-full h-full object-contain p-2" />
+      </div>
+
+      <h3 id="modal-title" class="text-lg font-bold text-gray-900 mb-1"></h3>
+      <p id="modal-desc" class="text-xs text-gray-500 mb-3 leading-relaxed"></p>
+
+      <div class="flex items-baseline gap-2 mb-4">
+        <span id="modal-price" class="text-xl font-black text-teal-700"></span>
+        <span id="modal-orig-price" class="text-xs text-gray-400 line-through"></span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button id="modal-add-btn" class="border-2 border-teal-600 text-teal-700 font-bold py-2 rounded-xl text-xs active:scale-95 transition-all">
+          🛒 Add to Cart
+        </button>
+        <button id="modal-buy-btn" class="bg-green-600 text-white font-bold py-2 rounded-xl text-xs active:scale-95 transition-all">
+          ⚡ Buy Now
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Modal Drawer -->
+  <div id="cart-modal" class="fixed inset-0 bg-black/50 z-30 hidden flex justify-end">
+    <div class="bg-white w-full max-w-md h-full p-4 flex flex-col justify-between overflow-y-auto">
+      <div>
+        <div class="flex justify-between items-center border-b pb-3 mb-3">
+          <h2 class="text-lg font-bold text-gray-800">Your Cart 🛒</h2>
+          <button onclick="closeCartModal()" class="text-gray-500 text-2xl font-bold">&times;</button>
+        </div>
+        <div id="cart-items-container" class="space-y-3"></div>
+      </div>
+
+      <div class="border-t pt-4 mt-4 space-y-3">
+        <div class="flex justify-between font-bold text-lg">
+          <span>Total Price:</span>
+          <span class="text-teal-700">₹<span id="cart-total-price">0</span></span>
+        </div>
+        <button onclick="orderViaWhatsApp()" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all">
+          💬 WhatsApp Par Order Karein
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Firebase v9 Integration -->
   <script type="module">
@@ -87,84 +154,72 @@
     const productsRef = ref(db, 'products');
 
     let allProductsData = [];
+    let cart = [];
     let currentCategory = 'All';
+    let searchQuery = '';
+    let currentSort = 'default';
 
-    // Firebase Realtime Listener
     onValue(productsRef, (snapshot) => {
       document.getElementById("loading").classList.add("hidden");
       document.getElementById("product-grid").classList.remove("hidden");
 
       if (!snapshot.exists()) {
-        document.getElementById("product-grid").innerHTML = `
-          <div class="col-span-2 text-center py-10 text-gray-500 font-semibold">Firebase me products nahi mile!</div>
-        `;
+        document.getElementById("product-grid").innerHTML = `<div class="col-span-2 text-center py-10 text-gray-500 font-semibold">Database me products nahi mile!</div>`;
         return;
       }
 
       allProductsData = [];
-      snapshot.forEach((childSnapshot) => {
-        allProductsData.push({
-          key: childSnapshot.key,
-          ...childSnapshot.val()
-        });
+      snapshot.forEach((child) => {
+        allProductsData.push({ key: child.key, ...child.val() });
       });
 
-      renderFilteredProducts();
-    }, (error) => {
-      console.error(error);
-      document.getElementById("loading").innerText = "Connection error! Firebase Database rules check karein.";
+      renderProducts();
     });
 
-    // Render Filtered Items Function
-    function renderFilteredProducts() {
+    function renderProducts() {
       const grid = document.getElementById("product-grid");
       grid.innerHTML = "";
 
-      const filtered = allProductsData.filter(item => {
-        if (currentCategory === 'All') return true;
-        // Firebase me category field check karein (category / type)
-        const itemCat = (item.category || item.type || "").toLowerCase().trim();
-        return itemCat === currentCategory.toLowerCase().trim();
+      let filtered = allProductsData.filter(item => {
+        const name = (item.title || item.name || item.productName || "").toLowerCase();
+        const cat = (item.category || item.type || "").toLowerCase();
+
+        return (currentCategory === 'All' || cat === currentCategory.toLowerCase()) &&
+               name.includes(searchQuery.toLowerCase());
       });
 
+      if (currentSort === 'low-high') filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+      else if (currentSort === 'high-low') filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+
+      document.getElementById("product-count-text").innerText = `${filtered.length} Items Available`;
+
       if (filtered.length === 0) {
-        grid.innerHTML = `
-          <div class="col-span-2 text-center py-10 text-gray-500 font-semibold">
-            "${currentCategory}" category me koyi product nahi hai!
-          </div>
-        `;
+        grid.innerHTML = `<div class="col-span-2 text-center py-10 text-gray-500 font-semibold">Koyi product nahi mila!</div>`;
         return;
       }
 
       filtered.forEach((item) => {
-        const name = item.title || item.name || item.productName || "Sanitary Product";
+        const name = item.title || item.name || item.productName || "Sanitary Item";
         const imgSrc = item.image || item.imageUrl || item.img || "https://via.placeholder.com/300?text=Sanitary+Mart";
+
+        const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
 
         grid.innerHTML += `
           <div class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
-            ${item.discount ? `
-              <span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded z-10">
-                ${item.discount}
-              </span>
-            ` : ''}
+            ${item.discount ? `<span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded z-10">${item.discount}</span>` : ''}
 
-            <div class="w-full h-36 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center relative">
-              <img 
-                src="${imgSrc}" 
-                alt="Product" 
-                class="w-full h-full object-contain p-1"
-                onerror="this.onerror=null; this.src='https://via.placeholder.com/300?text=No+Image';"
-              />
+            <div onclick='window.openDetailModal(${itemJson})' class="w-full h-36 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center cursor-pointer relative">
+              <img src="${imgSrc}" alt="Product" class="w-full h-full object-contain p-1" onerror="this.onerror=null; this.src='https://via.placeholder.com/300?text=No+Image';" />
             </div>
 
-            <div class="product-title" title="${name}">${name}</div>
+            <div onclick='window.openDetailModal(${itemJson})' class="product-title cursor-pointer" title="${name}">${name}</div>
 
             <div class="flex items-baseline gap-1.5 my-1">
               <span class="text-base font-extrabold text-gray-900">₹${item.price || 0}</span>
               ${item.originalPrice ? `<span class="text-xs text-gray-400 line-through">₹${item.originalPrice}</span>` : ''}
             </div>
 
-            <button onclick="window.addToCart()" class="w-full mt-1 border-2 border-blue-500 text-blue-600 font-bold py-1.5 rounded-xl text-xs active:bg-blue-50 transition-all">
+            <button onclick='window.addToCart(${itemJson})' class="w-full mt-1 border-2 border-blue-500 text-blue-600 font-bold py-1.5 rounded-xl text-xs active:bg-blue-50 transition-all">
               + Add
             </button>
           </div>
@@ -172,36 +227,110 @@
       });
     }
 
-    // Category Filter Click Handler
-    window.filterCategory = function(catName) {
-      currentCategory = catName;
+    // Modal Details Window
+    window.openDetailModal = function(item) {
+      const name = item.title || item.name || item.productName || "Sanitary Product";
+      const imgSrc = item.image || item.imageUrl || item.img || "https://via.placeholder.com/300";
 
-      // Update Active Button Style
-      const buttons = document.querySelectorAll('.cat-btn');
-      buttons.forEach(btn => {
-        if (btn.innerText.trim().toLowerCase() === catName.toLowerCase() || (catName === 'All' && btn.innerText.includes('All'))) {
-          btn.classList.add('active', 'bg-teal-700', 'text-white', 'border-teal-700');
-          btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
-        } else {
-          btn.classList.remove('active', 'bg-teal-700', 'text-white', 'border-teal-700');
-          btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
-        }
-      });
+      document.getElementById("modal-img").src = imgSrc;
+      document.getElementById("modal-title").innerText = name;
+      document.getElementById("modal-desc").innerText = item.description || "High-quality durable sanitaryware product with premium finish.";
+      document.getElementById("modal-price").innerText = `₹${item.price || 0}`;
+      document.getElementById("modal-orig-price").innerText = item.originalPrice ? `₹${item.originalPrice}` : '';
 
-      renderFilteredProducts();
+      document.getElementById("modal-add-btn").onclick = function() {
+        window.addToCart(item);
+        window.closeDetailModal();
+      };
+
+      document.getElementById("modal-buy-btn").onclick = function() {
+        window.directBuyNow(item);
+      };
+
+      document.getElementById("detail-modal").classList.remove("hidden");
     };
 
-    // Cart Handler
-    let cartCount = 0;
-    window.addToCart = function() {
-      cartCount++;
-      document.getElementById("cart-count").innerText = cartCount;
+    window.closeDetailModal = function() {
+      document.getElementById("detail-modal").classList.add("hidden");
+    };
+
+    // Direct Buy Now
+    window.directBuyNow = function(item) {
+      const name = item.title || item.name || item.productName || "Sanitary Product";
+      const phoneNumber = "919876543210"; 
+      const message = `Hello Sanitary Mart, mujhe urgent ye buy karna hai:\n\n*${name}* - ₹${item.price || 0}`;
+      window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
+    };
+
+    // Global Handlers
+    window.filterCategory = function(catName) {
+      currentCategory = catName;
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        if (btn.innerText.trim().toLowerCase() === catName.toLowerCase() || (catName === 'All' && btn.innerText.includes('All'))) {
+          btn.classList.add('active', 'bg-teal-700', 'text-white', 'border-teal-700');
+        } else {
+          btn.classList.remove('active', 'bg-teal-700', 'text-white', 'border-teal-700');
+        }
+      });
+      renderProducts();
+    };
+
+    window.handleSearch = function() {
+      searchQuery = document.getElementById("search-input").value;
+      renderProducts();
+    };
+
+    window.handleSort = function() {
+      currentSort = document.getElementById("sort-select").value;
+      renderProducts();
+    };
+
+    // Cart Logic
+    window.addToCart = function(item) {
+      const name = item.title || item.name || item.productName || "Sanitary Item";
+      cart.push({ name, price: item.price || 0 });
+      updateCartUI();
+    };
+
+    function updateCartUI() {
+      document.getElementById("cart-count").innerText = cart.length;
+      const container = document.getElementById("cart-items-container");
+      container.innerHTML = "";
+      let total = 0;
+
+      cart.forEach((item, index) => {
+        total += item.price;
+        container.innerHTML += `
+          <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border">
+            <div>
+              <p class="font-bold text-xs text-gray-800">${item.name}</p>
+              <p class="text-xs text-teal-700 font-semibold">₹${item.price}</p>
+            </div>
+            <button onclick="removeFromCart(${index})" class="text-red-500 font-bold text-xs">Remove</button>
+          </div>
+        `;
+      });
+
+      document.getElementById("cart-total-price").innerText = total;
+    }
+
+    window.removeFromCart = function(index) {
+      cart.splice(index, 1);
+      updateCartUI();
+    };
+
+    window.openCartModal = function() { document.getElementById("cart-modal").classList.remove("hidden"); };
+    window.closeCartModal = function() { document.getElementById("cart-modal").classList.add("hidden"); };
+
+    window.orderViaWhatsApp = function() {
+      if(cart.length === 0) return alert("Aapka cart khali hai!");
+      const phoneNumber = "919876543210"; 
+      let message = "Hello Sanitary Mart, mujhe ye products order karne hain:\n\n";
+      cart.forEach((item, i) => { message += `${i+1}. ${item.name} - ₹${item.price}\n`; });
+      message += `\n*Total Price: ₹${document.getElementById("cart-total-price").innerText}*`;
+      window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
     };
   </script>
 </body>
 </html>
-
-
-
-
 
