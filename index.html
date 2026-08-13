@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sanitary Mart - Checkout</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f6f8;
@@ -15,50 +18,87 @@
         .checkout-card {
             background: #ffffff;
             padding: 24px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            max-width: 400px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 480px;
             width: 100%;
         }
         h2 {
             margin-top: 0;
             color: #1a252f;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 8px;
+        }
+        h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #333;
+        }
+        .cart-section, .form-section {
+            background: #fafafa;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed #cbd5e1;
+        }
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+        .qty-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .qty-btn:hover {
+            background: #cbd5e1;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             font-weight: bold;
+            font-size: 14px;
         }
-        input {
+        input, select, textarea {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .total-box {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0d9488;
+            text-align: right;
+            margin-top: 10px;
         }
         .btn-whatsapp {
             width: 100%;
             background-color: #25D366;
             color: white;
             border: none;
-            padding: 12px;
+            padding: 14px;
             font-size: 16px;
             font-weight: bold;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
             margin-top: 10px;
         }
         .btn-whatsapp:hover {
             background-color: #1eb855;
-        }
-        .item-preview {
-            background: #eef2f5;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -67,21 +107,52 @@
 <div class="checkout-card">
     <h2>🛒 Sanitary Mart Checkout</h2>
     
-    <div class="item-preview">
-        <strong>Order Summary:</strong>
-        <p id="items-list"></p>
-        <p><strong>Total Amount: ₹<span id="total-price">0</span></strong></p>
+    <!-- 1. Multi-Product & Quantity Control Section -->
+    <div class="cart-section">
+        <h3>📦 Order Items</h3>
+        <div id="cart-list"></div>
+        <div class="total-box">Total Amount: ₹<span id="grand-total">0</span></div>
     </div>
 
+    <!-- Customer & Delivery Details Section -->
     <form id="orderForm">
-        <div class="form-group">
-            <label for="name">Customer Name</label>
-            <input type="text" id="name" placeholder="Name darj karein" value="kamal kumar" required>
+        <div class="form-section">
+            <h3>👤 Customer Details</h3>
+            <div class="form-group">
+                <label for="name">Customer Name *</label>
+                <input type="text" id="name" placeholder="Naam darj karein" value="kamal kumar" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Phone Number *</label>
+                <input type="tel" id="phone" placeholder="10 digit phone number" value="9024686665" required>
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label for="phone">Phone Number</label>
-            <input type="tel" id="phone" placeholder="Phone number darj karein" value="9024686665" required>
+
+        <!-- 2. Delivery Address & Pincode Section -->
+        <div class="form-section">
+            <h3>📍 Delivery Address</h3>
+            <div class="form-group">
+                <label for="address">Full Address *</label>
+                <textarea id="address" rows="2" placeholder="Ghar / Dukan No., Market, Area" required>Main Market, Shop No 12</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="pincode">Pincode *</label>
+                <input type="text" id="pincode" placeholder="Pincode darj karein" value="333001" required>
+            </div>
+        </div>
+
+        <!-- 3. Payment Method Section -->
+        <div class="form-section">
+            <h3>💳 Payment Method</h3>
+            <div class="form-group">
+                <select id="payment-method">
+                    <option value="UPI / Online Payment">UPI / Online Payment</option>
+                    <option value="Cash on Delivery (COD)">Cash on Delivery (COD)</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                </select>
+            </div>
         </div>
 
         <button type="button" class="btn-whatsapp" onclick="sendWhatsAppOrder()">
@@ -91,70 +162,113 @@
 </div>
 
 <script>
-    // 1. Aapka Cart Data (Product Name dynamic yahan se aayega)
-    const cartItems = [
-        { name: "Fabio Sheet", qty: 1, price: 17500 }
-        // Agar multple items ho toh aise add ho jayenge:
-        // { name: "Brass Tap", qty: 2, price: 1200 }
+    // Dukan Ka WhatsApp Number (Country code 91 ke sath)
+    const storeWhatsAppNumber = "919024686665";
+
+    // Dynamic Multi-Product List
+    let cartItems = [
+        { id: 1, name: "Fabio Sheet", qty: 1, price: 17500 },
+        { id: 2, name: "Brass Basin Tap", qty: 1, price: 1250 }
     ];
 
-    // 2. Apni Dukan Ka WhatsApp Number Yahan Dalein (Country code 91 ke saath)
-    const storeWhatsAppNumber = "919024686665"; 
-
-    // UI me items dikhane aur total calculate karne ka function
-    function loadOrderDetails() {
-        let itemsHtml = "";
-        let total = 0;
-
-        cartItems.forEach(item => {
-            itemsHtml += `• ${item.name} (Qty: ${item.qty}) - ₹${item.price}<br>`;
-            total += item.price * item.qty;
-        });
-
-        document.getElementById("items-list").innerHTML = itemsHtml;
-        document.getElementById("total-price").innerText = total;
+    // Quantity Update Function (+ / -)
+    function changeQty(index, change) {
+        if (cartItems[index].qty + change > 0) {
+            cartItems[index].qty += change;
+        } else {
+            // Quantity 0 hone par remove karne ka confirm
+            if (confirm(`${cartItems[index].name} ko cart se hatayein?`)) {
+                cartItems.splice(index, 1);
+            }
+        }
+        renderCart();
     }
 
-    // WhatsApp par dynamic message bhejne ka function
-    function sendWhatsAppOrder() {
-        const customerName = document.getElementById("name").value.trim();
-        const customerPhone = document.getElementById("phone").value.trim();
+    // Cart Render & Total Calculate Function
+    function renderCart() {
+        const cartList = document.getElementById("cart-list");
+        let html = "";
+        let total = 0;
 
-        if (!customerName || !customerPhone) {
-            alert("Kripya Naam aur Phone Number darj karein!");
+        if (cartItems.length === 0) {
+            cartList.innerHTML = "<p style='color:red;'>Cart khali hai!</p>";
+            document.getElementById("grand-total").innerText = "0";
             return;
         }
 
-        // Dynamic Products List tayar karna
+        cartItems.forEach((item, index) => {
+            let itemTotal = item.price * item.qty;
+            total += itemTotal;
+            html += `
+                <div class="cart-item">
+                    <div>
+                        <strong>${item.name}</strong><br>
+                        <small>₹${item.price} x ${item.qty}</small>
+                    </div>
+                    <div>
+                        <button type="button" class="qty-btn" onclick="changeQty(${index}, -1)">-</button>
+                        <span style="margin: 0 8px; font-weight:bold;">${item.qty}</span>
+                        <button type="button" class="qty-btn" onclick="changeQty(${index}, 1)">+</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        cartList.innerHTML = html;
+        document.getElementById("grand-total").innerText = total;
+    }
+
+    // WhatsApp Message Send Function
+    function sendWhatsAppOrder() {
+        const name = document.getElementById("name").value.trim();
+        const phone = document.getElementById("phone").value.trim();
+        const address = document.getElementById("address").value.trim();
+        const pincode = document.getElementById("pincode").value.trim();
+        const paymentMethod = document.getElementById("payment-method").value;
+
+        if (!name || !phone || !address || !pincode) {
+            alert("Kripya saari details fill karein!");
+            return;
+        }
+
+        if (cartItems.length === 0) {
+            alert("Cart me kam se kam ek product hona chahiye!");
+            return;
+        }
+
+        // Product List Text Formatting
         let productListText = "";
         let grandTotal = 0;
 
         cartItems.forEach(item => {
-            productListText += `• ${item.name} (Qty: ${item.qty}) - ₹${item.price}\n`;
-            grandTotal += item.price * item.qty;
+            let subtotal = item.price * item.qty;
+            productListText += `• ${item.name} (Qty: ${item.qty}) - ₹${subtotal}\n`;
+            grandTotal += subtotal;
         });
 
-        // Dynamic WhatsApp Message Format
+        // New WhatsApp Message Format
         let message = `🛒 *NEW ORDER - SANITARY MART*\n\n` +
-                      `👤 *Customer Name:* ${customerName}\n` +
-                      `📞 *Phone:* ${customerPhone}\n\n` +
+                      `👤 *Customer Name:* ${name}\n` +
+                      `📞 *Phone:* ${phone}\n\n` +
                       `📦 *Order Items:*\n` +
                       `${productListText}\n` +
                       `💰 *Total Amount:* ₹${grandTotal}\n\n` +
+                      `📍 *Delivery Address:*\n${address}\n` +
+                      `📮 *Pincode:* ${pincode}\n\n` +
+                      `💳 *Payment Method:* ${paymentMethod}\n\n` +
                       `Please confirm my order and share payment details!`;
 
-        // URL Encode karke WhatsApp open karna
         let whatsappURL = `https://wa.me/${storeWhatsAppNumber}?text=${encodeURIComponent(message)}`;
-        
         window.open(whatsappURL, '_blank');
     }
 
-    // Page load hone par details load karein
-    loadOrderDetails();
+    // Page Load hote hi cart initialize karein
+    renderCart();
 </script>
 
 </body>
 </html>
+
 
 
 
