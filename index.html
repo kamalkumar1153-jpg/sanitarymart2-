@@ -1,118 +1,161 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sanitary Mart - Digital Showroom</title>
-  
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Firebase v9 Compatibility Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanitary Mart - Checkout</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .checkout-card {
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        h2 {
+            margin-top: 0;
+            color: #1a252f;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .btn-whatsapp {
+            width: 100%;
+            background-color: #25D366;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-whatsapp:hover {
+            background-color: #1eb855;
+        }
+        .item-preview {
+            background: #eef2f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+    </style>
 </head>
 <body>
 
-  <!-- Clean Header -->
-  <div class="header">
-    <div class="header-brand">
-      <h1>Sanitary Mart</h1>
-      <span class="subtitle">Digital Showroom</span>
+<div class="checkout-card">
+    <h2>🛒 Sanitary Mart Checkout</h2>
+    
+    <div class="item-preview">
+        <strong>Order Summary:</strong>
+        <p id="items-list"></p>
+        <p><strong>Total Amount: ₹<span id="total-price">0</span></strong></p>
     </div>
-  </div>
 
-  <div class="ticker">
-    🎉 Flat 18% OFF on All Premium Showroom Items!
-  </div>
-
-  <!-- Search Bar with Clear Button -->
-  <div class="search-box">
-    <div class="search-wrapper">
-      <input type="text" id="search" placeholder="Search taps, showers, sanitaryware..." onkeyup="filterAndSort()">
-      <span class="clear-search" id="clearSearch" onclick="clearSearchInput()">&times;</span>
-    </div>
-  </div>
-
-  <!-- Dynamic Category Pills with Counters -->
-  <div class="categories" id="categoriesContainer">
-    <button class="filter-btn active" onclick="filterData('All Products', this)">All <span class="cat-count" id="count-all">(0)</span></button>
-    <button class="filter-btn" onclick="filterData('Sanitaryware', this)">Sanitaryware <span class="cat-count" id="count-sanitary">(0)</span></button>
-    <button class="filter-btn" onclick="filterData('Taps & Showers', this)">Taps & Showers <span class="cat-count" id="count-taps">(0)</span></button>
-    <button class="filter-btn" onclick="filterData('Health Faucet', this)">Health Faucet <span class="cat-count" id="count-health">(0)</span></button>
-  </div>
-
-  <!-- Products Grid -->
-  <div class="product-grid" id="container">
-    <div class="loading-state">
-      <i class="fas fa-spinner fa-spin"></i>
-      <p>Loading products...</p>
-    </div>
-  </div>
-
-  <!-- Floating Action Buttons -->
-  <a href="https://wa.me/919024686665" class="float-wa" target="_blank" title="WhatsApp Inquiry">
-    <i class="fab fa-whatsapp"></i>
-  </a>
-
-  <div class="float-cart" onclick="openCartModal()" title="View Cart">
-    <i class="fas fa-shopping-cart"></i>
-    <div class="cart-badge" id="cartCount">0</div>
-  </div>
-
-  <div id="toast" class="toast"></div>
-
-  <!-- Product Detail Modal -->
-  <div id="prodModal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn" onclick="closeModal('prodModal')">&times;</span>
-      <div class="img-zoom-container" onclick="openImageZoom()">
-        <img id="m-img" src="" alt="Product" class="modal-img">
-        <span class="zoom-hint"><i class="fas fa-search-plus"></i> Tap to Zoom</span>
-      </div>
-      <h2 id="m-name" class="modal-title"></h2>
-      <div id="m-price" class="modal-price"></div>
-      <div class="modal-actions">
-        <button onclick="addSelectedToCart()" class="btn-primary">Add to Cart</button>
-        <a id="m-wa" href="#" target="_blank" class="btn-whatsapp">
-          <i class="fab fa-whatsapp"></i> Inquiry
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Image Lightbox Zoom Modal -->
-  <div id="imageZoomModal" class="lightbox-modal" onclick="closeImageZoom()">
-    <span class="lightbox-close">&times;</span>
-    <img id="lightboxImg" src="" class="lightbox-content">
-  </div>
-
-  <!-- Cart & Checkout Modal -->
-  <div id="cartModal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn" onclick="closeModal('cartModal')">&times;</span>
-      <h2>Your Cart</h2>
-      
-      <div id="cartList" class="cart-list"></div>
-
-      <div class="checkout-form" id="checkoutDetails" style="display: none; margin-top: 10px;">
-        <input type="text" id="custName" placeholder="Aapka Naam (Required)" required style="width:100%; padding:8px; margin-bottom:6px; border-radius:6px; border:1px solid #cbd5e1;">
-        <input type="tel" id="custPhone" placeholder="Mobile Number (Required)" required style="width:100%; padding:8px; margin-bottom:6px; border-radius:6px; border:1px solid #cbd5e1;">
-      </div>
-
-      <div class="cart-summary">
-        <div>Total: ₹<span id="cartTotal">0</span></div>
-        <div style="display: flex; gap: 6px;">
-          <button onclick="clearCart()" class="btn-secondary">Clear</button>
-          <button onclick="sendWhatsAppOrder()" class="btn-whatsapp" style="font-size: 12px; padding: 6px 10px;">Order on WhatsApp</button>
+    <form id="orderForm">
+        <div class="form-group">
+            <label for="name">Customer Name</label>
+            <input type="text" id="name" placeholder="Name darj karein" value="kamal kumar" required>
         </div>
-      </div>
-    </div>
-  </div>
+        
+        <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" placeholder="Phone number darj karein" value="9024686665" required>
+        </div>
 
-  <script src="script.js"></script>
+        <button type="button" class="btn-whatsapp" onclick="sendWhatsAppOrder()">
+            WhatsApp Par Order Bhejein 📲
+        </button>
+    </form>
+</div>
+
+<script>
+    // 1. Aapka Cart Data (Product Name dynamic yahan se aayega)
+    const cartItems = [
+        { name: "Fabio Sheet", qty: 1, price: 17500 }
+        // Agar multple items ho toh aise add ho jayenge:
+        // { name: "Brass Tap", qty: 2, price: 1200 }
+    ];
+
+    // 2. Apni Dukan Ka WhatsApp Number Yahan Dalein (Country code 91 ke saath)
+    const storeWhatsAppNumber = "919024686665"; 
+
+    // UI me items dikhane aur total calculate karne ka function
+    function loadOrderDetails() {
+        let itemsHtml = "";
+        let total = 0;
+
+        cartItems.forEach(item => {
+            itemsHtml += `• ${item.name} (Qty: ${item.qty}) - ₹${item.price}<br>`;
+            total += item.price * item.qty;
+        });
+
+        document.getElementById("items-list").innerHTML = itemsHtml;
+        document.getElementById("total-price").innerText = total;
+    }
+
+    // WhatsApp par dynamic message bhejne ka function
+    function sendWhatsAppOrder() {
+        const customerName = document.getElementById("name").value.trim();
+        const customerPhone = document.getElementById("phone").value.trim();
+
+        if (!customerName || !customerPhone) {
+            alert("Kripya Naam aur Phone Number darj karein!");
+            return;
+        }
+
+        // Dynamic Products List tayar karna
+        let productListText = "";
+        let grandTotal = 0;
+
+        cartItems.forEach(item => {
+            productListText += `• ${item.name} (Qty: ${item.qty}) - ₹${item.price}\n`;
+            grandTotal += item.price * item.qty;
+        });
+
+        // Dynamic WhatsApp Message Format
+        let message = `🛒 *NEW ORDER - SANITARY MART*\n\n` +
+                      `👤 *Customer Name:* ${customerName}\n` +
+                      `📞 *Phone:* ${customerPhone}\n\n` +
+                      `📦 *Order Items:*\n` +
+                      `${productListText}\n` +
+                      `💰 *Total Amount:* ₹${grandTotal}\n\n` +
+                      `Please confirm my order and share payment details!`;
+
+        // URL Encode karke WhatsApp open karna
+        let whatsappURL = `https://wa.me/${storeWhatsAppNumber}?text=${encodeURIComponent(message)}`;
+        
+        window.open(whatsappURL, '_blank');
+    }
+
+    // Page load hone par details load karein
+    loadOrderDetails();
+</script>
+
 </body>
 </html>
+
 
 
 
