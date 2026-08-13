@@ -3,154 +3,237 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sanitary Mart - Digital Showroom</title>
+  <title>Sanitary Mart</title>
+  
+  <!-- Tailwind CSS & Font Awesome -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
   <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: #f8fafc;
+      margin: 0;
+      padding-bottom: 30px;
+    }
+    .header-banner {
+      background-color: #0284c7;
+      color: white;
+      padding: 12px 16px;
+    }
+    .offer-bar {
+      background-color: #ef4444;
+      color: white;
+      text-align: center;
+      padding: 6px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .filter-btn {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid #cbd5e1;
+      background: white;
+      color: #334155;
+      font-size: 13px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .filter-btn.active {
+      background: #0284c7;
+      color: white;
+      border-color: #0284c7;
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      padding: 12px;
+    }
+    @media (min-width: 768px) {
+      .product-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    .product-card {
+      background: white;
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .badge-discount {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: #eab308;
+      color: #0f172a;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+      z-index: 2;
+    }
+    .product-img {
+      width: 100%;
+      height: 130px;
+      object-fit: contain;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
     .product-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1e293b;
+      margin: 4px 0;
+      line-height: 1.2;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      min-height: 2.5rem;
-      color: #1f2937;
-      font-weight: 700;
-      font-size: 0.875rem;
-      line-height: 1.25rem;
-      margin-top: 0.5rem;
-      margin-bottom: 0.25rem;
+      height: 32px;
     }
-    .cat-btn.active {
-      background-color: #0284c7 !important;
-      color: #ffffff !important;
-      border-color: #0284c7 !important;
+    .rating {
+      color: #f59e0b;
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
+    .add-btn {
+      background: #0284c7;
+      color: white;
+      width: 100%;
+      padding: 8px 0;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-top: 8px;
+      border: none;
+      cursor: pointer;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 50;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 400px;
+      padding: 16px;
+      max-height: 90vh;
+      overflow-y: auto;
     }
   </style>
 </head>
-<body class="bg-slate-100 min-h-screen pb-24">
+<body>
 
-  <!-- Header -->
-  <header class="bg-sky-600 p-4 text-white sticky top-0 z-20 shadow-md">
-    <div class="flex justify-between items-center mb-2">
-      <h1 class="text-xl font-bold">Sanitary Mart</h1>
-      <button onclick="window.openCartModal()" class="bg-white text-sky-600 px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all">
-        🛒 Cart <span id="cart-count" class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">0</span>
-      </button>
-    </div>
-    
-    <div class="bg-red-500 text-white text-xs text-center py-1 rounded font-medium mb-3">
-      30% off all sanitary ware and 18% off faucet
-    </div>
+  <!-- Top Navigation Header -->
+  <div class="header-banner flex justify-between items-center">
+    <h1 class="text-xl font-bold">Sanitary Mart</h1>
+    <button onclick="openCartModal()" class="bg-white text-sky-600 px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 shadow">
+      <i class="fa-solid font-bold fa-cart-shopping"></i> Cart
+      <span id="cartCount" class="bg-rose-600 text-white px-1.5 py-0.5 rounded-full text-[10px]">0</span>
+    </button>
+  </div>
 
+  <!-- Announcement Bar -->
+  <div class="offer-bar">
+    30% off all sanitary ware and 18% off faucet
+  </div>
+
+  <!-- Search Section -->
+  <div class="p-3 bg-sky-600">
     <div class="relative">
-      <input 
-        type="text" 
-        id="search-input" 
-        oninput="window.handleSearch()"
-        placeholder="Search (e.g. Agnese, Sharp, Taps)..." 
-        class="w-full pl-10 pr-4 py-2 bg-white text-gray-800 rounded-full text-sm border-none focus:outline-none shadow-inner"
-      />
-      <span class="absolute left-3.5 top-2 text-gray-400 text-sm">🔍</span>
-    </div>
-  </header>
-
-  <!-- Categories -->
-  <div class="p-4 space-y-3">
-    <div class="flex gap-2 overflow-x-auto scrollbar-none" id="category-container">
-      <button onclick="window.filterCategory('All')" class="cat-btn active bg-sky-600 text-white border border-sky-600 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">All Products</button>
-      <button onclick="window.filterCategory('Sanitary')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Sanitary</button>
-      <button onclick="window.filterCategory('Taps & Showers')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Taps & Showers</button>
-      <button onclick="window.filterCategory('Health Faucets')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Health Faucets</button>
-    </div>
-
-    <div class="flex justify-between items-center text-xs text-gray-500 px-1">
-      <span id="product-count-text">Loading items...</span>
-      <select id="sort-select" onchange="window.handleSort()" class="bg-transparent border-none font-semibold text-sky-800 focus:outline-none cursor-pointer">
-        <option value="default">Sort: Default</option>
-        <option value="low-high">Price: Low to High</option>
-        <option value="high-low">Price: High to Low</option>
-      </select>
+      <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
+      <input type="text" id="search" onkeyup="filterAndSort()" placeholder="Search (e.g. Agnese, Sharp, Taps)..." 
+             class="w-full pl-9 pr-8 py-2 rounded-full text-xs bg-white focus:outline-none text-slate-800">
+      <button id="clearSearch" onclick="clearSearchInput()" style="display:none;" class="absolute right-3 top-2 text-slate-400 font-bold text-sm">&times;</button>
     </div>
   </div>
 
-  <!-- Product Grid -->
-  <main class="px-4">
-    <div id="loading" class="text-center py-12 text-gray-500 font-medium">
-      Sanitary Mart Firebase se connect ho raha hai...
+  <!-- Category Filter Buttons -->
+  <div class="flex gap-2 p-3 overflow-x-auto bg-white border-b border-slate-200">
+    <button class="filter-btn active" onclick="filterData('all', this)">All Products <span id="count-all"></span></button>
+    <button class="filter-btn" onclick="filterData('sanitary', this)">Sanitary <span id="count-sanitary"></span></button>
+    <button class="filter-btn" onclick="filterData('taps', this)">Taps & Showers <span id="count-taps"></span></button>
+    <button class="filter-btn" onclick="filterData('health', this)">Health Faucets <span id="count-health"></span></button>
+  </div>
+
+  <!-- Product Listing Grid -->
+  <div id="container" class="product-grid">
+    <p class="col-span-full text-center text-slate-400 py-10 text-sm">Products loading...</p>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" style="display:none;" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-4 py-2 rounded-full z-50 shadow-lg"></div>
+
+  <!-- Product View Modal -->
+  <div id="prodModal" class="modal">
+    <div class="modal-content relative">
+      <button onclick="closeModal('prodModal')" class="absolute right-3 top-3 text-slate-400 text-lg font-bold">&times;</button>
+      <img id="m-img" src="" class="w-full h-48 object-contain rounded-lg mb-3 cursor-pointer" onclick="openImageZoom()">
+      <h3 id="m-name" class="font-bold text-sm text-slate-800 mb-1"></h3>
+      <div id="m-price" class="text-rose-600 font-bold text-base mb-4"></div>
+      
+      <div class="flex gap-2">
+        <button onclick="addSelectedToCart()" class="flex-1 bg-sky-600 text-white py-2 rounded-lg text-xs font-bold">Add to Cart</button>
+        <a id="m-wa" href="#" target="_blank" class="flex-1 bg-emerald-600 text-white py-2 rounded-lg text-xs font-bold text-center flex items-center justify-center gap-1">
+          <i class="fa-brands fa-whatsapp"></i> Buy Now
+        </a>
+      </div>
     </div>
+  </div>
 
-    <div id="product-grid" class="grid grid-cols-2 gap-3.5 hidden"></div>
-  </main>
+  <!-- Image Lightbox Zoom Modal -->
+  <div id="imageZoomModal" class="modal" onclick="closeImageZoom()">
+    <div class="relative max-w-sm w-full p-2">
+      <img id="lightboxImg" src="" class="w-full h-auto rounded-lg shadow-2xl">
+    </div>
+  </div>
 
-  <!-- Cart & Checkout Modal -->
-  <div id="cart-modal" class="fixed inset-0 bg-black/50 z-40 hidden flex justify-end">
-    <div class="bg-white w-full max-w-md h-full p-4 flex flex-col justify-between overflow-y-auto">
-      <div>
-        <div class="flex justify-between items-center border-b pb-3 mb-3">
-          <h2 class="text-lg font-bold text-gray-800">Checkout & Order 🛒</h2>
-          <button onclick="window.closeCartModal()" class="text-gray-500 text-2xl font-bold">&times;</button>
-        </div>
-
-        <!-- Selected Items -->
-        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">1. Selected Products</p>
-        <div id="cart-items-container" class="space-y-2 mb-4"></div>
-
-        <!-- Delivery Address Form -->
-        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">2. Delivery Address</p>
-        <div class="space-y-2 mb-4">
-          <input type="text" id="cust-name" placeholder="Full Name *" class="w-full text-xs p-2.5 border rounded-lg focus:outline-sky-600 bg-gray-50" />
-          <input type="tel" id="cust-phone" placeholder="Mobile Number *" class="w-full text-xs p-2.5 border rounded-lg focus:outline-sky-600 bg-gray-50" />
-          <textarea id="cust-address" rows="2" placeholder="Complete Address (House No, Area, City, Pincode) *" class="w-full text-xs p-2.5 border rounded-lg focus:outline-sky-600 bg-gray-50"></textarea>
-        </div>
-
-        <!-- Payment Option -->
-        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">3. Payment Option</p>
-        <div class="grid grid-cols-3 gap-2 mb-4">
-          <label class="border p-2 rounded-lg text-center cursor-pointer text-xs flex flex-col items-center justify-center gap-1 bg-gray-50">
-            <input type="radio" name="payment_mode" value="Cash on Delivery" checked class="accent-sky-600" />
-            <span class="font-medium text-[11px]">Cash on Delivery</span>
-          </label>
-          <label class="border p-2 rounded-lg text-center cursor-pointer text-xs flex flex-col items-center justify-center gap-1 bg-gray-50">
-            <input type="radio" name="payment_mode" value="UPI / Online Pay" class="accent-sky-600" />
-            <span class="font-medium text-[11px]">UPI / Online</span>
-          </label>
-          <label class="border p-2 rounded-lg text-center cursor-pointer text-xs flex flex-col items-center justify-center gap-1 bg-gray-50">
-            <input type="radio" name="payment_mode" value="Pay at Store (Pickup)" class="accent-sky-600" />
-            <span class="font-medium text-[11px]">Pay at Store</span>
-          </label>
-        </div>
-
-        <!-- Invoice Type Option -->
-        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">4. Invoice Preference</p>
-        <div class="space-y-2 mb-4">
-          <select id="invoice-type" onchange="window.toggleGstInput()" class="w-full text-xs p-2.5 border rounded-lg focus:outline-sky-600 bg-gray-50 font-medium">
-            <option value="Regular Bill">Standard Bill (Retail)</option>
-            <option value="GST Tax Invoice">GST Tax Invoice (Commercial)</option>
-          </select>
-          <input type="text" id="cust-gst" placeholder="GSTIN / Business Name (Optional)" class="w-full text-xs p-2.5 border rounded-lg focus:outline-sky-600 bg-gray-50 hidden" />
-        </div>
+  <!-- Cart Modal -->
+  <div id="cartModal" class="modal">
+    <div class="modal-content">
+      <div class="flex justify-between items-center mb-3 border-b pb-2">
+        <h3 class="font-bold text-sm text-slate-800">Your Shopping Cart</h3>
+        <button onclick="closeModal('cartModal')" class="text-slate-400 font-bold text-lg">&times;</button>
       </div>
 
-      <!-- Total & Submit -->
-      <div class="border-t pt-3 mt-2 space-y-3">
-        <div class="flex justify-between font-bold text-base">
-          <span>Total Amount:</span>
-          <span class="text-sky-700">₹<span id="cart-total-price">0</span></span>
+      <div id="cartList" class="max-h-48 overflow-y-auto mb-3"></div>
+
+      <div id="checkoutDetails" style="display:none;" class="border-t pt-3">
+        <div class="flex justify-between text-sm font-bold mb-3">
+          <span>Total Payable:</span>
+          <span class="text-rose-600">₹<span id="cartTotal">0</span></span>
         </div>
-        <button onclick="window.orderViaWhatsApp()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md">
-          💬 Send Order & Invoice Request
+
+        <input type="text" id="custName" placeholder="Apna Naam bharein" class="w-full border p-2 rounded text-xs mb-2 focus:outline-none">
+        <input type="tel" id="custPhone" placeholder="Mobile Number bharein" class="w-full border p-2 rounded text-xs mb-3 focus:outline-none">
+
+        <button onclick="sendWhatsAppOrder()" class="w-full bg-emerald-600 text-white py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-2">
+          <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp Par Order Bhejein
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Firebase & App Script -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-
-    // ✅ APKA UPDATED WHATSAPP NUMBER
-    const MY_WHATSAPP_NUMBER = "919024686665"; 
-
+  <!-- Application Logic -->
+  <script>
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyCuhd6WeneZFqkScgyahmkzGPV-U78Zb0s",
       authDomain: "sanitarymart-65014.firebaseapp.com",
@@ -158,241 +241,341 @@
       projectId: "sanitarymart-65014",
       storageBucket: "sanitarymart-65014.firebasestorage.app",
       messagingSenderId: "285578370716",
-      appId: "1:285578370716:web:c47f43f25ad2ab86b25759",
-      measurementId: "G-0XJC8RN90V"
+      appId: "1:285578370716:web:e689a8c22951da1fb25759",
+      measurementId: "G-0XJC8RN9"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const productsRef = ref(db, 'products');
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
 
-    let allProductsData = [];
+    let allProducts = [];
     let cart = [];
-    let currentCategory = 'All';
-    let searchQuery = '';
-    let currentSort = 'default';
+    let selectedProduct = null;
 
-    onValue(productsRef, (snapshot) => {
-      document.getElementById("loading").classList.add("hidden");
-      document.getElementById("product-grid").classList.remove("hidden");
+    // Helper: Smart Discount Price Calculator
+    function calculatePriceWithDiscount(p) {
+      let rawPrice = Number(p.mrp || p.oldPrice || p.originalPrice || p.price || 0);
+      if (isNaN(rawPrice) || rawPrice <= 0) rawPrice = 0;
 
-      if (!snapshot.exists()) {
-        document.getElementById("product-grid").innerHTML = `<div class="col-span-2 text-center py-10 text-gray-500 font-semibold">Database me products nahi mile!</div>`;
-        return;
+      const pCat = (p.category || p.cat || p.type || '').toLowerCase();
+      let discountPercent = Number(p.discount || p.offer || (pCat.includes('tap') || pCat.includes('shower') ? 18 : 30));
+
+      if (isNaN(discountPercent) || discountPercent <= 0) {
+        discountPercent = 30; // Default 30% discount
       }
 
-      allProductsData = [];
-      snapshot.forEach((child) => {
-        allProductsData.push({ key: child.key, ...child.val() });
-      });
+      let mrp = rawPrice;
+      let finalPrice = Math.round(mrp - (mrp * (discountPercent / 100)));
 
-      renderProducts();
+      return {
+        mrp: mrp,
+        finalPrice: finalPrice,
+        discountPercent: discountPercent
+      };
+    }
+
+    // Realtime Database Sync
+    const productsRef = db.ref('products');
+    productsRef.on('value', (snapshot) => {
+      const data = snapshot.val();
+      allProducts = [];
+
+      if (data) {
+        if (Array.isArray(data)) {
+          allProducts = data.filter(item => item != null).map((item, idx) => ({ _index: idx, ...item }));
+        } else {
+          Object.keys(data).forEach((key, idx) => {
+            allProducts.push({ _id: key, _index: idx, ...data[key] });
+          });
+        }
+        updateCategoryCounts();
+        filterAndSort();
+      } else {
+        document.getElementById('container').innerHTML = 
+          `<p class="col-span-full text-center text-slate-500 py-10">Firebase me koi product nahi mila.</p>`;
+      }
     });
 
-    function renderProducts() {
-      const grid = document.getElementById("product-grid");
-      grid.innerHTML = "";
+    function updateCategoryCounts() {
+      let sanitaryCount = 0, tapsCount = 0, healthCount = 0;
 
-      let filtered = allProductsData.filter(item => {
-        const name = (item.title || item.name || item.productName || "").toLowerCase();
-        const cat = (item.category || item.type || item.cat || "").toLowerCase().trim();
-        const selected = currentCategory.toLowerCase().trim();
-
-        const matchSearch = name.includes(searchQuery.toLowerCase());
-
-        let matchCat = false;
-        if (selected === 'all' || selected.includes('all')) {
-          matchCat = true;
-        } else if (selected.includes('tap') || selected.includes('shower') || selected.includes('faucet')) {
-          matchCat = cat.includes('tap') || cat.includes('shower') || cat.includes('faucet') || cat.includes('mixer');
-        } else if (selected.includes('sanitary')) {
-          matchCat = cat.includes('sanitary') || cat.includes('basin') || cat.includes('seat');
-        } else if (selected.includes('health')) {
-          matchCat = cat.includes('health') || cat.includes('spray');
-        } else {
-          matchCat = cat === selected;
-        }
-
-        return matchCat && matchSearch;
+      allProducts.forEach(p => {
+        const pCat = (p.category || p.cat || p.type || '').toLowerCase();
+        if (pCat.includes('sanitary') || pCat.includes('seat') || pCat.includes('basin') || pCat.includes('toilet')) sanitaryCount++;
+        if (pCat.includes('tap') || pCat.includes('shower') || pCat.includes('faucet') || pCat.includes('mixer')) tapsCount++;
+        if (pCat.includes('health')) healthCount++;
       });
 
-      if (currentSort === 'low-high') filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
-      else if (currentSort === 'high-low') filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+      document.getElementById('count-all').innerText = `(${allProducts.length})`;
+      document.getElementById('count-sanitary').innerText = `(${sanitaryCount})`;
+      document.getElementById('count-taps').innerText = `(${tapsCount})`;
+      document.getElementById('count-health').innerText = `(${healthCount})`;
+    }
 
-      document.getElementById("product-count-text").innerText = `${filtered.length} Items Available`;
+    function renderProducts(products) {
+      const container = document.getElementById('container');
+      container.innerHTML = '';
 
-      if (filtered.length === 0) {
-        grid.innerHTML = `
-          <div class="col-span-2 text-center py-10 text-gray-500 font-semibold">
-            "${currentCategory}" me koyi product nahi mila!<br>
-            <button onclick="window.filterCategory('All')" class="mt-2 text-xs text-sky-700 font-bold underline">
-              All Products Dekhein
-            </button>
-          </div>`;
+      if (!products || products.length === 0) {
+        container.innerHTML = `<p class="col-span-full text-center text-slate-500 py-10">Koi product nahi mila.</p>`;
         return;
       }
 
-      filtered.forEach((item) => {
-        const name = item.title || item.name || item.productName || "Sanitary Item";
-        const imgSrc = item.image || item.imageUrl || item.img || "https://via.placeholder.com/300?text=Sanitary+Mart";
-        const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
+      products.forEach((p, index) => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        
+        const productIndex = p._index !== undefined ? p._index : index;
+        card.setAttribute('onclick', `openProductModalByIndex(${productIndex})`);
 
-        grid.innerHTML += `
-          <div class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
-            ${item.discount ? `<span class="absolute top-2 left-2 bg-yellow-400 text-black text-[10px] font-bold px-2 py-0.5 rounded z-10">${item.discount}</span>` : ''}
+        const title = p.name || p.title || p.productName || p.label || 'Sanitary Product';
+        const imgSrc = p.image || p.imageUrl || p.img || 'https://via.placeholder.com/150';
+        
+        const priceData = calculatePriceWithDiscount(p);
+        p.calculatedMrp = priceData.mrp;
+        p.calculatedFinalPrice = priceData.finalPrice;
 
-            <div class="w-full h-36 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center relative">
-              <img src="${imgSrc}" alt="Product" class="w-full h-full object-contain p-1" onerror="this.onerror=null; this.src='https://via.placeholder.com/300?text=No+Image';" />
+        card.innerHTML = `
+          <div>
+            <span class="badge-discount">${priceData.discountPercent}% OFF</span>
+            <img src="${imgSrc}" alt="${title}" class="product-img" onerror="this.src='https://via.placeholder.com/120'">
+            <h3 class="product-title">${title}</h3>
+            <div class="rating">★★★★★</div>
+            <div class="price-row flex items-baseline gap-1 mt-1">
+              <span class="old-price line-through text-slate-400 text-xs">₹${priceData.mrp.toLocaleString('en-IN')}</span>
+              <span class="new-price font-bold text-rose-600 text-sm">₹${priceData.finalPrice.toLocaleString('en-IN')}</span>
             </div>
-
-            <div class="product-title" title="${name}">${name}</div>
-
-            <div class="flex items-baseline gap-1.5 my-1">
-              <span class="text-xs text-gray-400 line-through">₹${item.originalPrice || (item.price ? item.price + 500 : '')}</span>
-              <span class="text-base font-extrabold text-red-600">₹${item.price || 0}</span>
-            </div>
-
-            <button onclick='window.addToCart(${itemJson})' class="w-full mt-1 bg-sky-500 hover:bg-sky-600 text-white font-bold py-1.5 rounded-xl text-xs active:scale-95 transition-all">
-              Add to Cart
-            </button>
           </div>
+          <button class="add-btn" onclick="event.stopPropagation(); addToCartByIndex(${productIndex})">Add to Cart</button>
         `;
+        container.appendChild(card);
       });
     }
 
-    window.filterCategory = function(catName) {
-      currentCategory = catName;
-      document.querySelectorAll('.cat-btn').forEach(btn => {
-        const text = btn.innerText.trim().toLowerCase();
-        if (text === catName.toLowerCase() || (catName === 'All' && text.includes('all'))) {
-          btn.classList.add('active', 'bg-sky-600', 'text-white', 'border-sky-600');
-          btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+    window.filterAndSort = function() {
+      const searchInput = document.getElementById('search');
+      const clearBtn = document.getElementById('clearSearch');
+      const searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
+      
+      if (clearBtn) clearBtn.style.display = searchQuery.length > 0 ? 'block' : 'none';
+
+      const activeBtn = document.querySelector('.filter-btn.active');
+      const currentCategory = activeBtn ? activeBtn.innerText.trim().toLowerCase() : 'all';
+
+      let filtered = allProducts.filter(p => {
+        const pName = (p.name || p.title || p.productName || p.label || '').toLowerCase();
+        const pCat = (p.category || p.cat || p.type || '').toLowerCase();
+        
+        const matchesSearch = searchQuery === '' || pName.includes(searchQuery) || pCat.includes(searchQuery);
+
+        let matchesCategory = false;
+        if (currentCategory.includes('all')) {
+          matchesCategory = true;
+        } else if (currentCategory.includes('sanitary')) {
+          matchesCategory = pCat.includes('sanitary') || pCat.includes('seat') || pCat.includes('basin') || pCat.includes('toilet');
+        } else if (currentCategory.includes('taps') || currentCategory.includes('shower')) {
+          matchesCategory = pCat.includes('tap') || pCat.includes('shower') || pCat.includes('faucet') || pCat.includes('mixer');
+        } else if (currentCategory.includes('health')) {
+          matchesCategory = pCat.includes('health');
         } else {
-          btn.classList.remove('active', 'bg-sky-600', 'text-white', 'border-sky-600');
-          btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+          matchesCategory = pCat.includes(currentCategory);
         }
+
+        return matchesSearch && matchesCategory;
       });
-      renderProducts();
+
+      renderProducts(filtered);
     };
 
-    window.handleSearch = function() {
-      searchQuery = document.getElementById("search-input").value;
-      renderProducts();
+    window.clearSearchInput = function() {
+      document.getElementById('search').value = '';
+      filterAndSort();
     };
 
-    window.handleSort = function() {
-      currentSort = document.getElementById("sort-select").value;
-      renderProducts();
+    window.filterData = function(category, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterAndSort();
     };
 
-    // Cart Logic
-    window.addToCart = function(item) {
-      const name = item.title || item.name || item.productName || "Sanitary Item";
-      cart.push({ name, price: Number(item.price) || 0 });
-      window.updateCartUI();
+    window.openProductModalByIndex = function(index) {
+      const product = allProducts.find(p => p._index === index) || allProducts[index];
+      if (!product) return;
+
+      selectedProduct = product;
+      const title = product.name || product.title || product.productName || 'Sanitary Product';
+      const priceData = calculatePriceWithDiscount(product);
+      const imgSrc = product.image || product.imageUrl || product.img || 'https://via.placeholder.com/150';
+
+      document.getElementById('m-img').src = imgSrc;
+      document.getElementById('m-name').innerText = title;
+      document.getElementById('m-price').innerText = '₹' + priceData.finalPrice.toLocaleString('en-IN');
+      document.getElementById('m-wa').href = `https://wa.me/919024686665?text=Hi,%20I%20am%20interested%20in%20${encodeURIComponent(title)}%20for%20Rs.${priceData.finalPrice}`;
+
+      document.getElementById('prodModal').style.display = 'flex';
     };
 
-    window.updateCartUI = function() {
-      document.getElementById("cart-count").innerText = cart.length;
-      const container = document.getElementById("cart-items-container");
-      container.innerHTML = "";
-      let total = 0;
+    window.openImageZoom = function() {
+      const mImg = document.getElementById('m-img');
+      if (mImg) {
+        document.getElementById('lightboxImg').src = mImg.src;
+        document.getElementById('imageZoomModal').style.display = 'flex';
+      }
+    };
 
-      if(cart.length === 0) {
-        container.innerHTML = `<p class="text-center text-gray-400 py-4 text-xs">Aapka cart khali hai!</p>`;
+    window.closeImageZoom = function() {
+      document.getElementById('imageZoomModal').style.display = 'none';
+    };
+
+    window.closeModal = function(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    };
+
+    window.addToCartByIndex = function(index) {
+      const p = allProducts.find(item => item._index === index) || allProducts[index];
+      if (p) {
+        const pTitle = p.name || p.title || p.productName || 'Sanitary Product';
+        const priceData = calculatePriceWithDiscount(p);
+        
+        const exist = cart.find(item => item._index === p._index);
+        if (exist) {
+          exist.qty += 1;
+        } else {
+          cart.push({ ...p, cartTitle: pTitle, cartPrice: priceData.finalPrice, qty: 1 });
+        }
+        updateCartUI();
+        showToast(`${pTitle} cart me add ho gaya!`);
+      }
+    };
+
+    window.addSelectedToCart = function() {
+      if (selectedProduct) {
+        addToCartByIndex(selectedProduct._index);
+        closeModal('prodModal');
+      }
+    };
+
+    function updateCartUI() {
+      const cartCount = document.getElementById('cartCount');
+      const cartList = document.getElementById('cartList');
+      const cartTotal = document.getElementById('cartTotal');
+      const checkoutDetails = document.getElementById('checkoutDetails');
+
+      const totalItems = cart.reduce((acc, item) => acc + item.qty, 0);
+      if (cartCount) cartCount.innerText = totalItems;
+
+      if (cart.length === 0) {
+        if (cartList) cartList.innerHTML = `<p class='text-slate-400 text-center text-xs py-4'>Cart khali hai.</p>`;
+        if (cartTotal) cartTotal.innerText = '0';
+        if (checkoutDetails) checkoutDetails.style.display = 'none';
+        return;
       }
 
-      cart.forEach((item, index) => {
-        total += item.price;
-        container.innerHTML += `
-          <div class="flex justify-between items-center bg-gray-50 p-2 rounded-lg border text-xs">
-            <div>
-              <p class="font-bold text-gray-800">${item.name}</p>
-              <p class="text-sky-700 font-semibold">₹${item.price}</p>
+      if (checkoutDetails) checkoutDetails.style.display = 'block';
+
+      if (cartList) {
+        cartList.innerHTML = '';
+        let total = 0;
+
+        cart.forEach(item => {
+          const itemTotal = item.cartPrice * item.qty;
+          total += itemTotal;
+          
+          const row = document.createElement('div');
+          row.className = 'flex justify-between items-center py-2 border-b text-xs';
+          row.innerHTML = `
+            <div class="flex-1 pr-2">
+              <strong class="text-slate-800 font-semibold block">${item.cartTitle}</strong>
+              <span class="text-slate-500">₹${item.cartPrice.toLocaleString('en-IN')} x ${item.qty}</span>
             </div>
-            <button onclick="window.removeFromCart(${index})" class="text-red-500 font-bold">Remove</button>
-          </div>
-        `;
+            <div class="flex items-center gap-2">
+              <button onclick="changeQty(${item._index}, -1)" class="px-2 py-0.5 border rounded bg-slate-50 font-bold">-</button>
+              <span class="font-bold">${item.qty}</span>
+              <button onclick="changeQty(${item._index}, 1)" class="px-2 py-0.5 border rounded bg-slate-50 font-bold">+</button>
+            </div>
+          `;
+          cartList.appendChild(row);
+        });
+
+        if (cartTotal) cartTotal.innerText = total.toLocaleString('en-IN');
+      }
+    }
+
+    window.sendWhatsAppOrder = function() {
+      if (cart.length === 0) return alert("Pehle cart me products add karein!");
+
+      const nameInput = document.getElementById('custName').value.trim();
+      const phoneInput = document.getElementById('custPhone').value.trim();
+
+      if (!nameInput || !phoneInput) return alert("Kripya apna Naam aur Mobile Number bharein!");
+
+      let totalBill = 0;
+      let itemDetailsText = "";
+
+      const orderItemsArray = cart.map(item => {
+        const itemTotal = item.cartPrice * item.qty;
+        totalBill += itemTotal;
+        itemDetailsText += `• ${item.cartTitle} (Qty: ${item.qty}) - ₹${itemTotal.toLocaleString('en-IN')}\n`;
+        return { title: item.cartTitle, price: item.cartPrice, qty: item.qty, subtotal: itemTotal };
       });
 
-      document.getElementById("cart-total-price").innerText = total;
+      // Firebase Orders Node Saving
+      const newOrderRef = db.ref('orders').push();
+      newOrderRef.set({
+        orderId: newOrderRef.key,
+        customerName: nameInput,
+        customerPhone: phoneInput,
+        items: orderItemsArray,
+        totalBill: totalBill,
+        createdAt: new Date().toISOString()
+      });
+
+      const waMessage = `🛒 *NEW ORDER - SANITARY MART*\n\n` +
+        `👤 *Customer Name:* ${nameInput}\n` +
+        `📞 *Phone:* ${phoneInput}\n\n` +
+        `📦 *Order Items:*\n${itemDetailsText}\n` +
+        `💰 *Total Amount:* ₹${totalBill.toLocaleString('en-IN')}\n\n` +
+        `Please confirm my order and share payment details!`;
+
+      window.open(`https://wa.me/919024686665?text=${encodeURIComponent(waMessage)}`, '_blank');
+      
+      clearCart();
+      closeModal('cartModal');
     };
 
-    window.removeFromCart = function(index) {
-      cart.splice(index, 1);
-      window.updateCartUI();
+    window.changeQty = function(index, delta) {
+      const item = cart.find(i => i._index === index);
+      if (item) {
+        item.qty += delta;
+        if (item.qty <= 0) cart = cart.filter(i => i._index !== index);
+        updateCartUI();
+      }
+    };
+
+    window.clearCart = function() {
+      cart = [];
+      updateCartUI();
     };
 
     window.openCartModal = function() {
-      window.updateCartUI();
-      document.getElementById("cart-modal").classList.remove("hidden");
+      updateCartUI();
+      document.getElementById('cartModal').style.display = 'flex';
     };
 
-    window.closeCartModal = function() {
-      document.getElementById("cart-modal").classList.add("hidden");
-    };
-
-    window.toggleGstInput = function() {
-      const type = document.getElementById("invoice-type").value;
-      const gstInput = document.getElementById("cust-gst");
-      if (type === "GST Tax Invoice") {
-        gstInput.classList.remove("hidden");
-      } else {
-        gstInput.classList.add("hidden");
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      if (toast) {
+        toast.innerText = msg;
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 2500);
       }
-    };
-
-    // Upgraded WhatsApp Message Dispatcher
-    window.orderViaWhatsApp = function() {
-      if (cart.length === 0) {
-        alert("Pehle cart me koyi product add karein!");
-        return;
-      }
-
-      const name = document.getElementById("cust-name").value.trim();
-      const phone = document.getElementById("cust-phone").value.trim();
-      const address = document.getElementById("cust-address").value.trim();
-      const paymentMode = document.querySelector('input[name="payment_mode"]:checked').value;
-      const invoiceType = document.getElementById("invoice-type").value;
-      const gstInfo = document.getElementById("cust-gst").value.trim();
-
-      if (!name || !phone || !address) {
-        alert("Kripya Naam, Mobile Number aur Complete Address bharein!");
-        return;
-      }
-
-      let message = `🛍️ *NEW ORDER - SANITARY MART*\n`;
-      message += `------------------------------------\n`;
-      message += `👤 *Customer Details:*\n`;
-      message += `• *Name:* ${name}\n`;
-      message += `• *Phone:* ${phone}\n`;
-      message += `• *Address:* ${address}\n\n`;
-
-      message += `📦 *Ordered Items:*\n`;
-      cart.forEach((item, i) => {
-        message += `${i + 1}. ${item.name} - ₹${item.price}\n`;
-      });
-
-      const totalPrice = document.getElementById("cart-total-price").innerText;
-      message += `\n💰 *Total Amount:* ₹${totalPrice}\n`;
-      message += `💳 *Payment Method:* ${paymentMode}\n`;
-      message += `📄 *Invoice Type:* ${invoiceType}\n`;
-
-      if (invoiceType === "GST Tax Invoice" && gstInfo) {
-        message += `🏢 *GSTIN / Details:* ${gstInfo}\n`;
-      }
-
-      message += `------------------------------------\n`;
-      message += `Kripya mera order confirm karein aur delivery timing batayein. Thank you!`;
-
-      const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://api.whatsapp.com/send?phone=${MY_WHATSAPP_NUMBER}&text=${encodedMessage}`;
-
-      window.open(whatsappUrl, '_blank');
-    };
+    }
   </script>
 </body>
 </html>
+
 
 
 
