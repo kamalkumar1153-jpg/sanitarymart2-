@@ -1,160 +1,400 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sanitary Mart - Checkout</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f8;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
-        .checkout-card {
-            background: #ffffff;
-            padding: 24px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            max-width: 400px;
-            width: 100%;
-        }
-        h2 {
-            margin-top: 0;
-            color: #1a252f;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-        .btn-whatsapp {
-            width: 100%;
-            background-color: #25D366;
-            color: white;
-            border: none;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .btn-whatsapp:hover {
-            background-color: #1eb855;
-        }
-        .item-preview {
-            background: #eef2f5;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sanitary Mart - Digital Showroom</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .product-title {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 2.5rem;
+      color: #1f2937;
+      font-weight: 700;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+    .cat-btn.active {
+      background-color: #0284c7 !important;
+      color: #ffffff !important;
+      border-color: #0284c7 !important;
+    }
+  </style>
 </head>
-<body>
+<body class="bg-slate-100 min-h-screen pb-24">
 
-<div class="checkout-card">
-    <h2>🛒 Sanitary Mart Checkout</h2>
+  <!-- Header -->
+  <header class="bg-sky-600 p-4 text-white sticky top-0 z-20 shadow-md">
+    <div class="flex justify-between items-center mb-2">
+      <h1 class="text-xl font-bold">Sanitary Mart</h1>
+      <button onclick="window.openCartModal()" class="bg-white text-sky-600 px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all">
+        🛒 Cart <span id="cart-count" class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">0</span>
+      </button>
+    </div>
     
-    <div class="item-preview">
-        <strong>Order Summary:</strong>
-        <p id="items-list"></p>
-        <p><strong>Total Amount: ₹<span id="total-price">0</span></strong></p>
+    <div class="bg-red-500 text-white text-xs text-center py-1 rounded font-medium mb-3">
+      30% off all sanitary ware and 18% off faucet
     </div>
 
-    <form id="orderForm">
-        <div class="form-group">
-            <label for="name">Customer Name</label>
-            <input type="text" id="name" placeholder="Name darj karein" value="kamal kumar" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="phone">Phone Number</label>
-            <input type="tel" id="phone" placeholder="Phone number darj karein" value="9024686665" required>
+    <div class="relative">
+      <input 
+        type="text" 
+        id="search-input" 
+        oninput="window.handleSearch()"
+        placeholder="Search (e.g. Agnese, Sharp, Taps)..." 
+        class="w-full pl-10 pr-4 py-2 bg-white text-gray-800 rounded-full text-sm border-none focus:outline-none shadow-inner"
+      />
+      <span class="absolute left-3.5 top-2 text-gray-400 text-sm">🔍</span>
+    </div>
+  </header>
+
+  <!-- Categories -->
+  <div class="p-4 space-y-3">
+    <div class="flex gap-2 overflow-x-auto scrollbar-none" id="category-container">
+      <button onclick="window.filterCategory('All')" class="cat-btn active bg-sky-600 text-white border border-sky-600 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">All Products</button>
+      <button onclick="window.filterCategory('Sanitary')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Sanitary</button>
+      <button onclick="window.filterCategory('Taps & Showers')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Taps & Showers</button>
+      <button onclick="window.filterCategory('Health Faucets')" class="cat-btn bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Health Faucets</button>
+    </div>
+
+    <div class="flex justify-between items-center text-xs text-gray-500 px-1">
+      <span id="product-count-text">Loading items...</span>
+      <select id="sort-select" onchange="window.handleSort()" class="bg-transparent border-none font-semibold text-sky-800 focus:outline-none cursor-pointer">
+        <option value="default">Sort: Default</option>
+        <option value="low-high">Price: Low to High</option>
+        <option value="high-low">Price: High to Low</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Product Grid -->
+  <main class="px-4">
+    <div id="loading" class="text-center py-12 text-gray-500 font-medium">
+      Sanitary Mart Firebase se connect ho raha hai...
+    </div>
+
+    <div id="product-grid" class="grid grid-cols-2 gap-3.5 hidden"></div>
+  </main>
+
+  <!-- Cart & Checkout Modal -->
+  <div id="cart-modal" class="fixed inset-0 bg-black/50 z-40 hidden flex justify-end">
+    <div class="bg-white w-full max-w-md h-full p-4 flex flex-col justify-between overflow-y-auto">
+      <div>
+        <div class="flex justify-between items-center border-b pb-3 mb-3">
+          <h2 class="text-lg font-bold text-gray-800">Checkout & Order 🛒</h2>
+          <button onclick="window.closeCartModal()" class="text-gray-500 text-2xl font-bold">&times;</button>
         </div>
 
-        <button type="button" class="btn-whatsapp" onclick="sendWhatsAppOrder()">
-            WhatsApp Par Order Bhejein 📲
+        <!-- Selected Items -->
+        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">1. Selected Products</p>
+        <div id="cart-items-container" class="space-y-2 mb-4"></div>
+
+        <!-- Delivery Address Form -->
+        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">2. Delivery Address</p>
+        <div class="space-y-2 mb-4">
+          <input type="text" id="cust-name" placeholder="Full Name *" class="w-full text-xs p-2.5 border rounded-lg focus:outline-sky-600 bg-gray-50" />
+          <input type="tel" id="cust-phone" placeholder="Mobile Number *" class="w-full text-xs p-2.5 border rounded-lg focus:outline-sky-600 bg-gray-50" />
+          <textarea id="cust-address" rows="2" placeholder="Complete Address (House No, Area, City, Pincode) *" class="w-full text-xs p-2.5 border rounded-lg focus:outline-sky-600 bg-gray-50"></textarea>
+        </div>
+
+        <!-- Payment Option -->
+        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">3. Payment Option</p>
+        <div class="grid grid-cols-3 gap-2 mb-4">
+          <label class="border p-2 rounded-lg text-center cursor-pointer text-xs flex flex-col items-center justify-center gap-1 bg-gray-50">
+            <input type="radio" name="payment_mode" value="Cash on Delivery" checked class="accent-sky-600" />
+            <span class="font-medium text-[11px]">Cash on Delivery</span>
+          </label>
+          <label class="border p-2 rounded-lg text-center cursor-pointer text-xs flex flex-col items-center justify-center gap-1 bg-gray-50">
+            <input type="radio" name="payment_mode" value="UPI / Online Pay" class="accent-sky-600" />
+            <span class="font-medium text-[11px]">UPI / Online</span>
+          </label>
+          <label class="border p-2 rounded-lg text-center cursor-pointer text-xs flex flex-col items-center justify-center gap-1 bg-gray-50">
+            <input type="radio" name="payment_mode" value="Pay at Store (Pickup)" class="accent-sky-600" />
+            <span class="font-medium text-[11px]">Pay at Store</span>
+          </label>
+        </div>
+
+        <!-- Invoice Type Option -->
+        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">4. Invoice Preference</p>
+        <div class="space-y-2 mb-4">
+          <select id="invoice-type" onchange="window.toggleGstInput()" class="w-full text-xs p-2.5 border rounded-lg focus:outline-sky-600 bg-gray-50 font-medium">
+            <option value="Regular Bill">Standard Bill (Retail)</option>
+            <option value="GST Tax Invoice">GST Tax Invoice (Commercial)</option>
+          </select>
+          <input type="text" id="cust-gst" placeholder="GSTIN / Business Name (Optional)" class="w-full text-xs p-2.5 border rounded-lg focus:outline-sky-600 bg-gray-50 hidden" />
+        </div>
+      </div>
+
+      <!-- Total & Submit -->
+      <div class="border-t pt-3 mt-2 space-y-3">
+        <div class="flex justify-between font-bold text-base">
+          <span>Total Amount:</span>
+          <span class="text-sky-700">₹<span id="cart-total-price">0</span></span>
+        </div>
+        <button onclick="window.orderViaWhatsApp()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md">
+          💬 Send Order & Invoice Request
         </button>
-    </form>
-</div>
+      </div>
+    </div>
+  </div>
 
-<script>
-    // 1. Aapka Cart Data (Product Name dynamic yahan se aayega)
-    const cartItems = [
-        { name: "Fabio Sheet", qty: 1, price: 17500 }
-        // Agar multple items ho toh aise add ho jayenge:
-        // { name: "Brass Tap", qty: 2, price: 1200 }
-    ];
+  <!-- Firebase & App Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-    // 2. Apni Dukan Ka WhatsApp Number Yahan Dalein (Country code 91 ke saath)
-    const storeWhatsAppNumber = "919024686665"; 
+    // ✅ APKA UPDATED WHATSAPP NUMBER
+    const MY_WHATSAPP_NUMBER = "919024686665"; 
 
-    // UI me items dikhane aur total calculate karne ka function
-    function loadOrderDetails() {
-        let itemsHtml = "";
-        let total = 0;
+    const firebaseConfig = {
+      apiKey: "AIzaSyCuhd6WeneZFqkScgyahmkzGPV-U78Zb0s",
+      authDomain: "sanitarymart-65014.firebaseapp.com",
+      databaseURL: "https://sanitarymart-65014-default-rtdb.firebaseio.com",
+      projectId: "sanitarymart-65014",
+      storageBucket: "sanitarymart-65014.firebasestorage.app",
+      messagingSenderId: "285578370716",
+      appId: "1:285578370716:web:c47f43f25ad2ab86b25759",
+      measurementId: "G-0XJC8RN90V"
+    };
 
-        cartItems.forEach(item => {
-            itemsHtml += `• ${item.name} (Qty: ${item.qty}) - ₹${item.price}<br>`;
-            total += item.price * item.qty;
-        });
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const productsRef = ref(db, 'products');
 
-        document.getElementById("items-list").innerHTML = itemsHtml;
-        document.getElementById("total-price").innerText = total;
-    }
+    let allProductsData = [];
+    let cart = [];
+    let currentCategory = 'All';
+    let searchQuery = '';
+    let currentSort = 'default';
 
-    // WhatsApp par dynamic message bhejne ka function
-    function sendWhatsAppOrder() {
-        const customerName = document.getElementById("name").value.trim();
-        const customerPhone = document.getElementById("phone").value.trim();
+    onValue(productsRef, (snapshot) => {
+      document.getElementById("loading").classList.add("hidden");
+      document.getElementById("product-grid").classList.remove("hidden");
 
-        if (!customerName || !customerPhone) {
-            alert("Kripya Naam aur Phone Number darj karein!");
-            return;
+      if (!snapshot.exists()) {
+        document.getElementById("product-grid").innerHTML = `<div class="col-span-2 text-center py-10 text-gray-500 font-semibold">Database me products nahi mile!</div>`;
+        return;
+      }
+
+      allProductsData = [];
+      snapshot.forEach((child) => {
+        allProductsData.push({ key: child.key, ...child.val() });
+      });
+
+      renderProducts();
+    });
+
+    function renderProducts() {
+      const grid = document.getElementById("product-grid");
+      grid.innerHTML = "";
+
+      let filtered = allProductsData.filter(item => {
+        const name = (item.title || item.name || item.productName || "").toLowerCase();
+        const cat = (item.category || item.type || item.cat || "").toLowerCase().trim();
+        const selected = currentCategory.toLowerCase().trim();
+
+        const matchSearch = name.includes(searchQuery.toLowerCase());
+
+        let matchCat = false;
+        if (selected === 'all' || selected.includes('all')) {
+          matchCat = true;
+        } else if (selected.includes('tap') || selected.includes('shower') || selected.includes('faucet')) {
+          matchCat = cat.includes('tap') || cat.includes('shower') || cat.includes('faucet') || cat.includes('mixer');
+        } else if (selected.includes('sanitary')) {
+          matchCat = cat.includes('sanitary') || cat.includes('basin') || cat.includes('seat');
+        } else if (selected.includes('health')) {
+          matchCat = cat.includes('health') || cat.includes('spray');
+        } else {
+          matchCat = cat === selected;
         }
 
-        // Dynamic Products List tayar karna
-        let productListText = "";
-        let grandTotal = 0;
+        return matchCat && matchSearch;
+      });
 
-        cartItems.forEach(item => {
-            productListText += `• ${item.name} (Qty: ${item.qty}) - ₹${item.price}\n`;
-            grandTotal += item.price * item.qty;
-        });
+      if (currentSort === 'low-high') filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+      else if (currentSort === 'high-low') filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
 
-        // Dynamic WhatsApp Message Format
-        let message = `🛒 *NEW ORDER - SANITARY MART*\n\n` +
-                      `👤 *Customer Name:* ${customerName}\n` +
-                      `📞 *Phone:* ${customerPhone}\n\n` +
-                      `📦 *Order Items:*\n` +
-                      `${productListText}\n` +
-                      `💰 *Total Amount:* ₹${grandTotal}\n\n` +
-                      `Please confirm my order and share payment details!`;
+      document.getElementById("product-count-text").innerText = `${filtered.length} Items Available`;
 
-        // URL Encode karke WhatsApp open karna
-        let whatsappURL = `https://wa.me/${storeWhatsAppNumber}?text=${encodeURIComponent(message)}`;
-        
-        window.open(whatsappURL, '_blank');
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-2 text-center py-10 text-gray-500 font-semibold">
+            "${currentCategory}" me koyi product nahi mila!<br>
+            <button onclick="window.filterCategory('All')" class="mt-2 text-xs text-sky-700 font-bold underline">
+              All Products Dekhein
+            </button>
+          </div>`;
+        return;
+      }
+
+      filtered.forEach((item) => {
+        const name = item.title || item.name || item.productName || "Sanitary Item";
+        const imgSrc = item.image || item.imageUrl || item.img || "https://via.placeholder.com/300?text=Sanitary+Mart";
+        const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
+
+        grid.innerHTML += `
+          <div class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
+            ${item.discount ? `<span class="absolute top-2 left-2 bg-yellow-400 text-black text-[10px] font-bold px-2 py-0.5 rounded z-10">${item.discount}</span>` : ''}
+
+            <div class="w-full h-36 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center relative">
+              <img src="${imgSrc}" alt="Product" class="w-full h-full object-contain p-1" onerror="this.onerror=null; this.src='https://via.placeholder.com/300?text=No+Image';" />
+            </div>
+
+            <div class="product-title" title="${name}">${name}</div>
+
+            <div class="flex items-baseline gap-1.5 my-1">
+              <span class="text-xs text-gray-400 line-through">₹${item.originalPrice || (item.price ? item.price + 500 : '')}</span>
+              <span class="text-base font-extrabold text-red-600">₹${item.price || 0}</span>
+            </div>
+
+            <button onclick='window.addToCart(${itemJson})' class="w-full mt-1 bg-sky-500 hover:bg-sky-600 text-white font-bold py-1.5 rounded-xl text-xs active:scale-95 transition-all">
+              Add to Cart
+            </button>
+          </div>
+        `;
+      });
     }
 
-    // Page load hone par details load karein
-    loadOrderDetails();
-</script>
+    window.filterCategory = function(catName) {
+      currentCategory = catName;
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        const text = btn.innerText.trim().toLowerCase();
+        if (text === catName.toLowerCase() || (catName === 'All' && text.includes('all'))) {
+          btn.classList.add('active', 'bg-sky-600', 'text-white', 'border-sky-600');
+          btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+        } else {
+          btn.classList.remove('active', 'bg-sky-600', 'text-white', 'border-sky-600');
+          btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+        }
+      });
+      renderProducts();
+    };
 
+    window.handleSearch = function() {
+      searchQuery = document.getElementById("search-input").value;
+      renderProducts();
+    };
+
+    window.handleSort = function() {
+      currentSort = document.getElementById("sort-select").value;
+      renderProducts();
+    };
+
+    // Cart Logic
+    window.addToCart = function(item) {
+      const name = item.title || item.name || item.productName || "Sanitary Item";
+      cart.push({ name, price: Number(item.price) || 0 });
+      window.updateCartUI();
+    };
+
+    window.updateCartUI = function() {
+      document.getElementById("cart-count").innerText = cart.length;
+      const container = document.getElementById("cart-items-container");
+      container.innerHTML = "";
+      let total = 0;
+
+      if(cart.length === 0) {
+        container.innerHTML = `<p class="text-center text-gray-400 py-4 text-xs">Aapka cart khali hai!</p>`;
+      }
+
+      cart.forEach((item, index) => {
+        total += item.price;
+        container.innerHTML += `
+          <div class="flex justify-between items-center bg-gray-50 p-2 rounded-lg border text-xs">
+            <div>
+              <p class="font-bold text-gray-800">${item.name}</p>
+              <p class="text-sky-700 font-semibold">₹${item.price}</p>
+            </div>
+            <button onclick="window.removeFromCart(${index})" class="text-red-500 font-bold">Remove</button>
+          </div>
+        `;
+      });
+
+      document.getElementById("cart-total-price").innerText = total;
+    };
+
+    window.removeFromCart = function(index) {
+      cart.splice(index, 1);
+      window.updateCartUI();
+    };
+
+    window.openCartModal = function() {
+      window.updateCartUI();
+      document.getElementById("cart-modal").classList.remove("hidden");
+    };
+
+    window.closeCartModal = function() {
+      document.getElementById("cart-modal").classList.add("hidden");
+    };
+
+    window.toggleGstInput = function() {
+      const type = document.getElementById("invoice-type").value;
+      const gstInput = document.getElementById("cust-gst");
+      if (type === "GST Tax Invoice") {
+        gstInput.classList.remove("hidden");
+      } else {
+        gstInput.classList.add("hidden");
+      }
+    };
+
+    // Upgraded WhatsApp Message Dispatcher
+    window.orderViaWhatsApp = function() {
+      if (cart.length === 0) {
+        alert("Pehle cart me koyi product add karein!");
+        return;
+      }
+
+      const name = document.getElementById("cust-name").value.trim();
+      const phone = document.getElementById("cust-phone").value.trim();
+      const address = document.getElementById("cust-address").value.trim();
+      const paymentMode = document.querySelector('input[name="payment_mode"]:checked').value;
+      const invoiceType = document.getElementById("invoice-type").value;
+      const gstInfo = document.getElementById("cust-gst").value.trim();
+
+      if (!name || !phone || !address) {
+        alert("Kripya Naam, Mobile Number aur Complete Address bharein!");
+        return;
+      }
+
+      let message = `🛍️ *NEW ORDER - SANITARY MART*\n`;
+      message += `------------------------------------\n`;
+      message += `👤 *Customer Details:*\n`;
+      message += `• *Name:* ${name}\n`;
+      message += `• *Phone:* ${phone}\n`;
+      message += `• *Address:* ${address}\n\n`;
+
+      message += `📦 *Ordered Items:*\n`;
+      cart.forEach((item, i) => {
+        message += `${i + 1}. ${item.name} - ₹${item.price}\n`;
+      });
+
+      const totalPrice = document.getElementById("cart-total-price").innerText;
+      message += `\n💰 *Total Amount:* ₹${totalPrice}\n`;
+      message += `💳 *Payment Method:* ${paymentMode}\n`;
+      message += `📄 *Invoice Type:* ${invoiceType}\n`;
+
+      if (invoiceType === "GST Tax Invoice" && gstInfo) {
+        message += `🏢 *GSTIN / Details:* ${gstInfo}\n`;
+      }
+
+      message += `------------------------------------\n`;
+      message += `Kripya mera order confirm karein aur delivery timing batayein. Thank you!`;
+
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://api.whatsapp.com/send?phone=${MY_WHATSAPP_NUMBER}&text=${encodedMessage}`;
+
+      window.open(whatsappUrl, '_blank');
+    };
+  </script>
 </body>
 </html>
+
+
 
 
 
