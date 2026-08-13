@@ -19,6 +19,41 @@ let allProducts = [];
 let cart = [];
 let selectedProduct = null;
 
+// Helper: Smart Discount Price Calculator
+function calculatePriceWithDiscount(p) {
+  // Database base price (MRP / Selling price)
+  let basePrice = Number(p.mrp || p.oldPrice || p.originalPrice || p.price || 0);
+  
+  // Category check for discount
+  const pCat = (p.category || p.cat || p.type || '').toLowerCase();
+  
+  // Determine Discount Percentage (Default 30% for Sanitary, 18% for Faucets/Taps)
+  let discountPercent = Number(p.discount || p.offer || (pCat.includes('tap') || pCat.includes('shower') ? 18 : 30));
+
+  if (isNaN(discountPercent) || discountPercent <= 0) {
+    discountPercent = 30; // Fallback to 30%
+  }
+
+  // If basePrice is directly selling price, construct realistic MRP
+  let mrp = basePrice;
+  let finalPrice = basePrice;
+
+  if (p.mrp || p.oldPrice || p.originalPrice) {
+    // If MRP is given, subtract discount
+    finalPrice = Math.round(mrp - (mrp * (discountPercent / 100)));
+  } else {
+    // If base price is already saved as original, apply discount on it
+    mrp = basePrice;
+    finalPrice = Math.round(mrp - (mrp * (discountPercent / 100)));
+  }
+
+  return {
+    mrp: mrp,
+    finalPrice: finalPrice,
+    discountPercent: discountPercent
+  };
+}
+
 // Realtime Database Fetch
 const productsRef = db.ref('products');
 
@@ -66,7 +101,7 @@ function updateCategoryCounts() {
   if (countHealth) countHealth.innerText = `(${healthCount})`;
 }
 
-// Render Products with Exact Name Fallback
+// Render Products with Exact 30% OFF Calculation
 function renderProducts(products) {
   const container = document.getElementById('container');
   container.innerHTML = '';
@@ -83,24 +118,26 @@ function renderProducts(products) {
     const productIndex = p._index !== undefined ? p._index : index;
     card.setAttribute('onclick', `openProductModalByIndex(${productIndex})`);
 
-    // Smart Name & Price Fallbacks
+    // Smart Name & Discount Calculations
     const title = p.name || p.title || p.productName || p.label || 'Sanitary Product';
-    const price = p.price || p.sellingPrice || 0;
-    const oldPrice = p.oldPrice || p.originalPrice || p.mrp || Math.round(price * 1.25);
     const imgSrc = p.image || p.imageUrl || p.img || 'https://via.placeholder.com/150';
     
-    let rawDiscount = p.discount || p.offer || '18';
-    let discountText = String(rawDiscount).includes('%') ? rawDiscount : `${rawDiscount}% OFF`;
+    // Calculate exact discounted prices
+    const priceData = calculatePriceWithDiscount(p);
+    
+    // Store calculated final prices back on product object for cart use
+    p.calculatedMrp = priceData.mrp;
+    p.calculatedFinalPrice = priceData.finalPrice;
 
     card.innerHTML = `
       <div>
-        <span class="badge-discount">${discountText}</span>
+        <span class="badge-discount">${priceData.discountPercent}% OFF</span>
         <img src="${imgSrc}" alt="${title}" class="product-img" onerror="this.src='https://via.placeholder.com/120'">
         <h3 class="product-title">${title}</h3>
         <div class="rating">★★★★★</div>
         <div class="price-row">
-          <span class="old-price">₹${oldPrice}</span>
-          <span class="new-price">₹${price}</span>
+          <span class="old-price" style="text-decoration: line-through; color: #94a3b8; font-size: 13px;">₹${priceData.mrp.toLocaleString('en-IN')}</span>
+          <span class="new-price" style="color: #e11d48; font-weight: bold; font-size: 16px; margin-left: 6px;">₹${priceData.finalPrice.toLocaleString('en-IN')}</span>
         </div>
       </div>
       <button class="add-btn" onclick="event.stopPropagation(); addToCartByIndex(${productIndex})">Add to Cart</button>
@@ -167,7 +204,7 @@ window.openProductModalByIndex = function(index) {
   selectedProduct = product;
 
   const title = product.name || product.title || product.productName || product.label || 'Sanitary Product';
-  const price = product.price || product.sellingPrice || 0;
+  const priceData = calculatePriceWithDiscount(product);
   const imgSrc = product.image || product.imageUrl || product.img || 'https://via.placeholder.com/150';
 
   const mImg = document.getElementById('m-img');
@@ -177,8 +214,8 @@ window.openProductModalByIndex = function(index) {
 
   if (mImg) mImg.src = imgSrc;
   if (mName) mName.innerText = title;
-  if (mPrice) mPrice.innerText = '₹' + price;
-  if (mWa) mWa.href = `https://wa.me/919024686665?text=Hi,%20I%20am%20interested%20in%20${encodeURIComponent(title)}`;
+  if (mPrice) mPrice.innerText = '₹' + priceData.finalPrice.toLocaleString('en-IN');
+  if (mWa) mWa.href = `https://wa.me/919024686665?text=Hi,%20I%20am%20interested%20in%20${encodeURIComponent(title)}%20for%20Rs.${priceData.finalPrice}`;
 
   const prodModal = document.getElementById('prodModal');
   if (prodModal) prodModal.style.display = 'flex';
@@ -202,12 +239,13 @@ window.closeModal = function(modalId) {
   if (modal) modal.style.display = 'none';
 };
 
-// Add To Cart with Exact Product Name Storage
+// Add To Cart with Discounted Price
 window.addToCartByIndex = function(index) {
   const p = allProducts.find(item => item._index === index) || allProducts[index];
   if (p) {
     const pTitle = p.name || p.title || p.productName || p.label || 'Sanitary Product';
-    const pPrice = p.price || p.sellingPrice || 0;
+    const priceData = calculatePriceWithDiscount(p);
+    const pPrice = priceData.finalPrice;
     
     const exist = cart.find(item => item._index === p._index);
     if (exist) {
@@ -256,7 +294,7 @@ function updateCartUI() {
 
     cart.forEach(item => {
       const pTitle = item.cartTitle || item.name || item.title || item.productName || 'Sanitary Product';
-      const pPrice = item.cartPrice || item.price || item.sellingPrice || 0;
+      const pPrice = item.cartPrice || 0;
       total += pPrice * item.qty;
       
       const row = document.createElement('div');
@@ -264,7 +302,7 @@ function updateCartUI() {
       row.innerHTML = `
         <div style="flex: 1; padding-right: 8px;">
           <strong style="color: #0f172a; font-size: 12px; display: block; line-height: 1.2;">${pTitle}</strong>
-          <span style="color:#64748b; font-size: 11px;">₹${pPrice} x ${item.qty}</span>
+          <span style="color:#64748b; font-size: 11px;">₹${pPrice.toLocaleString('en-IN')} x ${item.qty}</span>
         </div>
         <div style="display: flex; align-items: center;">
           <button onclick="changeQty(${item._index}, -1)" style="padding:2px 8px; border-radius:4px; border:1px solid #ccc; background:#f8fafc; font-weight:bold;">-</button>
@@ -275,7 +313,7 @@ function updateCartUI() {
       cartList.appendChild(row);
     });
 
-    if (cartTotal) cartTotal.innerText = total;
+    if (cartTotal) cartTotal.innerText = total.toLocaleString('en-IN');
   }
 }
 
@@ -299,11 +337,11 @@ window.sendWhatsAppOrder = function() {
 
   const orderItemsArray = cart.map(item => {
     const pTitle = item.cartTitle || item.name || item.title || item.productName || 'Sanitary Product';
-    const pPrice = item.cartPrice || item.price || item.sellingPrice || 0;
+    const pPrice = item.cartPrice || 0;
     const itemTotal = pPrice * item.qty;
     totalBill += itemTotal;
 
-    itemDetailsText += `• ${pTitle} (Qty: ${item.qty}) - ₹${itemTotal}\n`;
+    itemDetailsText += `• ${pTitle} (Qty: ${item.qty}) - ₹${itemTotal.toLocaleString('en-IN')}\n`;
 
     return {
       title: pTitle,
@@ -337,7 +375,7 @@ window.sendWhatsAppOrder = function() {
     `👤 *Customer Name:* ${nameInput}\n` +
     `📞 *Phone:* ${phoneInput}\n\n` +
     `📦 *Order Items:*\n${itemDetailsText}\n` +
-    `💰 *Total Amount:* ₹${totalBill}\n\n` +
+    `💰 *Total Amount:* ₹${totalBill.toLocaleString('en-IN')}\n\n` +
     `Please confirm my order and share payment details!`;
 
   const waURL = `https://wa.me/919024686665?text=${encodeURIComponent(waMessage)}`;
@@ -377,6 +415,7 @@ function showToast(msg) {
     setTimeout(() => { toast.style.display = 'none'; }, 2500);
   }
 }
+
 
 
 
