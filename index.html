@@ -118,6 +118,21 @@
       border: none;
       cursor: pointer;
     }
+    .fk-btn {
+      background: #2874f0;
+      color: white;
+      width: 100%;
+      padding: 6px 0;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      text-decoration: none;
+    }
     .modal {
       display: none;
       position: fixed;
@@ -189,10 +204,16 @@
       <h3 id="m-name" class="font-bold text-sm text-slate-800 mb-1"></h3>
       <div id="m-price" class="text-rose-600 font-bold text-base mb-4"></div>
       
-      <div class="flex gap-2">
-        <button onclick="addSelectedToCart()" class="flex-1 bg-sky-600 text-white py-2 rounded-lg text-xs font-bold">Add to Cart</button>
-        <a id="m-wa" href="#" target="_blank" class="flex-1 bg-emerald-600 text-white py-2 rounded-lg text-xs font-bold text-center flex items-center justify-center gap-1">
-          <i class="fa-brands fa-whatsapp"></i> Buy Now
+      <div class="flex flex-col gap-2">
+        <div class="flex gap-2">
+          <button onclick="addSelectedToCart()" class="flex-1 bg-sky-600 text-white py-2 rounded-lg text-xs font-bold">Add to Cart</button>
+          <a id="m-wa" href="#" target="_blank" class="flex-1 bg-emerald-600 text-white py-2 rounded-lg text-xs font-bold text-center flex items-center justify-center gap-1">
+            <i class="fa-brands fa-whatsapp"></i> Buy via WhatsApp
+          </a>
+        </div>
+        <!-- Flipkart Affiliate Button in Modal -->
+        <a href="https://fktr.in/qqG13uf" target="_blank" class="w-full bg-blue-600 text-white py-2 rounded-lg text-xs font-bold text-center flex items-center justify-center gap-1">
+          <i class="fa-solid fa-bag-shopping"></i> Buy on Flipkart
         </a>
       </div>
     </div>
@@ -349,6 +370,9 @@
             </div>
           </div>
           <button class="add-btn" onclick="event.stopPropagation(); addToCartByIndex(${productIndex})">Add to Cart</button>
+          <a href="https://fktr.in/qqG13uf" target="_blank" onclick="event.stopPropagation();" class="fk-btn">
+            <i class="fa-solid fa-bag-shopping"></i> Buy on Flipkart
+          </a>
         `;
         container.appendChild(card);
       });
@@ -575,6 +599,7 @@
   </script>
 </body>
 </html>
+
 
 
 
