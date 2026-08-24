@@ -174,16 +174,18 @@
   <div class="p-3 bg-sky-600">
     <div class="relative">
       <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
-      <input type="text" id="search" onkeyup="filterAndSort()" placeholder="Search (e.g. Agnese, Sharp, Taps)..." 
+      <input type="text" id="search" onkeyup="filterAndSort()" placeholder="Search (e.g. One Piece, Basin, Taps)..." 
              class="w-full pl-9 pr-8 py-2 rounded-full text-xs bg-white focus:outline-none text-slate-800">
       <button id="clearSearch" onclick="clearSearchInput()" style="display:none;" class="absolute right-3 top-2 text-slate-400 font-bold text-sm">&times;</button>
     </div>
   </div>
 
-  <!-- Category Filter Buttons -->
+  <!-- Category Filter Buttons (Updated Categories) -->
   <div class="flex gap-2 p-3 overflow-x-auto bg-white border-b border-slate-200">
     <button class="filter-btn active" onclick="filterData('all', this)">All Products <span id="count-all"></span></button>
-    <button class="filter-btn" onclick="filterData('sanitary', this)">Sanitary <span id="count-sanitary"></span></button>
+    <button class="filter-btn" onclick="filterData('onepiece', this)">One Piece <span id="count-onepiece"></span></button>
+    <button class="filter-btn" onclick="filterData('wallmount', this)">Wall Mount <span id="count-wallmount"></span></button>
+    <button class="filter-btn" onclick="filterData('washbasin', this)">Wash Basin <span id="count-washbasin"></span></button>
     <button class="filter-btn" onclick="filterData('taps', this)">Taps & Showers <span id="count-taps"></span></button>
     <button class="filter-btn" onclick="filterData('health', this)">Health Faucets <span id="count-health"></span></button>
   </div>
@@ -233,7 +235,6 @@
             <i class="fa-brands fa-whatsapp"></i> Buy via WhatsApp
           </a>
         </div>
-        <!-- Flipkart Affiliate Button in Modal -->
         <a href="https://fktr.in/qqG13uf" target="_blank" class="w-full bg-blue-600 text-white py-2 rounded-lg text-xs font-bold text-center flex items-center justify-center gap-1">
           <i class="fa-solid fa-bag-shopping"></i> Buy on Flipkart
         </a>
@@ -276,7 +277,6 @@
 
   <!-- Application Logic -->
   <script>
-    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyCuhd6WeneZFqkScgyahmkzGPV-U78Zb0s",
       authDomain: "sanitarymart-65014.firebaseapp.com",
@@ -297,7 +297,6 @@
     let cart = [];
     let selectedProduct = null;
 
-    // Helper: Smart Discount Price Calculator
     function calculatePriceWithDiscount(p) {
       let rawPrice = Number(p.mrp || p.oldPrice || p.originalPrice || p.price || 0);
       if (isNaN(rawPrice) || rawPrice <= 0) rawPrice = 0;
@@ -306,7 +305,7 @@
       let discountPercent = Number(p.discount || p.offer || (pCat.includes('tap') || pCat.includes('shower') ? 18 : 30));
 
       if (isNaN(discountPercent) || discountPercent <= 0) {
-        discountPercent = 30; // Default 30% discount
+        discountPercent = 30;
       }
 
       let mrp = rawPrice;
@@ -319,7 +318,6 @@
       };
     }
 
-    // Realtime Database Sync
     const productsRef = db.ref('products');
     productsRef.on('value', (snapshot) => {
       const data = snapshot.val();
@@ -342,17 +340,23 @@
     });
 
     function updateCategoryCounts() {
-      let sanitaryCount = 0, tapsCount = 0, healthCount = 0;
+      let onePieceCount = 0, wallMountCount = 0, washBasinCount = 0, tapsCount = 0, healthCount = 0;
 
       allProducts.forEach(p => {
         const pCat = (p.category || p.cat || p.type || '').toLowerCase();
-        if (pCat.includes('sanitary') || pCat.includes('seat') || pCat.includes('basin') || pCat.includes('toilet')) sanitaryCount++;
+        const pName = (p.name || p.title || p.productName || p.label || '').toLowerCase();
+
+        if (pCat.includes('one piece') || pCat.includes('onepiece') || pName.includes('one piece')) onePieceCount++;
+        if (pCat.includes('wall mount') || pCat.includes('wall hung') || pCat.includes('wallmount') || pName.includes('wall hung')) wallMountCount++;
+        if (pCat.includes('basin') || pCat.includes('washbasin') || pName.includes('basin')) washBasinCount++;
         if (pCat.includes('tap') || pCat.includes('shower') || pCat.includes('faucet') || pCat.includes('mixer')) tapsCount++;
         if (pCat.includes('health')) healthCount++;
       });
 
       document.getElementById('count-all').innerText = `(${allProducts.length})`;
-      document.getElementById('count-sanitary').innerText = `(${sanitaryCount})`;
+      document.getElementById('count-onepiece').innerText = `(${onePieceCount})`;
+      document.getElementById('count-wallmount').innerText = `(${wallMountCount})`;
+      document.getElementById('count-washbasin').innerText = `(${washBasinCount})`;
       document.getElementById('count-taps').innerText = `(${tapsCount})`;
       document.getElementById('count-health').innerText = `(${healthCount})`;
     }
@@ -419,8 +423,12 @@
         let matchesCategory = false;
         if (currentCategory.includes('all')) {
           matchesCategory = true;
-        } else if (currentCategory.includes('sanitary')) {
-          matchesCategory = pCat.includes('sanitary') || pCat.includes('seat') || pCat.includes('basin') || pCat.includes('toilet');
+        } else if (currentCategory.includes('one piece')) {
+          matchesCategory = pCat.includes('one piece') || pCat.includes('onepiece') || pName.includes('one piece');
+        } else if (currentCategory.includes('wall mount')) {
+          matchesCategory = pCat.includes('wall mount') || pCat.includes('wall hung') || pCat.includes('wallmount') || pName.includes('wall hung');
+        } else if (currentCategory.includes('wash basin')) {
+          matchesCategory = pCat.includes('basin') || pCat.includes('washbasin') || pName.includes('basin');
         } else if (currentCategory.includes('taps') || currentCategory.includes('shower')) {
           matchesCategory = pCat.includes('tap') || pCat.includes('shower') || pCat.includes('faucet') || pCat.includes('mixer');
         } else if (currentCategory.includes('health')) {
@@ -503,6 +511,17 @@
       }
     };
 
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2000);
+    }
+
+    function openCartModal() {
+      document.getElementById('cartModal').style.display = 'flex';
+    }
+
     function updateCartUI() {
       const cartCount = document.getElementById('cartCount');
       const cartList = document.getElementById('cartList');
@@ -513,114 +532,65 @@
       if (cartCount) cartCount.innerText = totalItems;
 
       if (cart.length === 0) {
-        if (cartList) cartList.innerHTML = `<p class='text-slate-400 text-center text-xs py-4'>Cart khali hai.</p>`;
-        if (cartTotal) cartTotal.innerText = '0';
+        if (cartList) cartList.innerHTML = `<p class="text-slate-400 text-xs text-center py-4">Cart is empty</p>`;
         if (checkoutDetails) checkoutDetails.style.display = 'none';
+      } else {
+        let grandTotal = 0;
+        if (cartList) {
+          cartList.innerHTML = cart.map((item, idx) => {
+            const itemTotal = item.cartPrice * item.qty;
+            grandTotal += itemTotal;
+            return `
+              <div class="flex justify-between items-center py-2 border-b text-xs">
+                <div>
+                  <p class="font-semibold text-slate-800">${item.cartTitle}</p>
+                  <p class="text-slate-500">₹${item.cartPrice} x ${item.qty}</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-rose-600">₹${itemTotal}</span>
+                  <button onclick="removeCartItem(${idx})" class="text-rose-500 font-bold px-1">&times;</button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+        if (cartTotal) cartTotal.innerText = grandTotal.toLocaleString('en-IN');
+        if (checkoutDetails) checkoutDetails.style.display = 'block';
+      }
+    }
+
+    window.removeCartItem = function(idx) {
+      cart.splice(idx, 1);
+      updateCartUI();
+    };
+
+    window.sendWhatsAppOrder = function() {
+      const name = document.getElementById('custName').value.trim();
+      const phone = document.getElementById('custPhone').value.trim();
+
+      if (!name || !phone) {
+        alert("Kripya apna Naam aur Mobile Number bharein!");
         return;
       }
 
-      if (checkoutDetails) checkoutDetails.style.display = 'block';
+      let orderText = `*New Order - Sanitary Mart*\nName: ${name}\nPhone: ${phone}\n\n*Items Ordered:*\n`;
+      let total = 0;
 
-      if (cartList) {
-        cartList.innerHTML = '';
-        let total = 0;
-
-        cart.forEach(item => {
-          const itemTotal = item.cartPrice * item.qty;
-          total += itemTotal;
-          
-          const row = document.createElement('div');
-          row.className = 'flex justify-between items-center py-2 border-b text-xs';
-          row.innerHTML = `
-            <div class="flex-1 pr-2">
-              <strong class="text-slate-800 font-semibold block">${item.cartTitle}</strong>
-              <span class="text-slate-500">₹${item.cartPrice.toLocaleString('en-IN')} x ${item.qty}</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <button onclick="changeQty(${item._index}, -1)" class="px-2 py-0.5 border rounded bg-slate-50 font-bold">-</button>
-              <span class="font-bold">${item.qty}</span>
-              <button onclick="changeQty(${item._index}, 1)" class="px-2 py-0.5 border rounded bg-slate-50 font-bold">+</button>
-            </div>
-          `;
-          cartList.appendChild(row);
-        });
-
-        if (cartTotal) cartTotal.innerText = total.toLocaleString('en-IN');
-      }
-    }
-
-    window.sendWhatsAppOrder = function() {
-      if (cart.length === 0) return alert("Pehle cart me products add karein!");
-
-      const nameInput = document.getElementById('custName').value.trim();
-      const phoneInput = document.getElementById('custPhone').value.trim();
-
-      if (!nameInput || !phoneInput) return alert("Kripya apna Naam aur Mobile Number bharein!");
-
-      let totalBill = 0;
-      let itemDetailsText = "";
-
-      const orderItemsArray = cart.map(item => {
+      cart.forEach(item => {
         const itemTotal = item.cartPrice * item.qty;
-        totalBill += itemTotal;
-        itemDetailsText += `• ${item.cartTitle} (Qty: ${item.qty}) - ₹${itemTotal.toLocaleString('en-IN')}\n`;
-        return { title: item.cartTitle, price: item.cartPrice, qty: item.qty, subtotal: itemTotal };
+        total += itemTotal;
+        orderText += `• ${item.cartTitle} (x${item.qty}) - ₹${itemTotal}\n`;
       });
 
-      // Firebase Orders Node Saving
-      const newOrderRef = db.ref('orders').push();
-      newOrderRef.set({
-        orderId: newOrderRef.key,
-        customerName: nameInput,
-        customerPhone: phoneInput,
-        items: orderItemsArray,
-        totalBill: totalBill,
-        createdAt: new Date().toISOString()
-      });
+      orderText += `\n*Total Payable:* ₹${total.toLocaleString('en-IN')}`;
 
-      const waMessage = `🛒 *NEW ORDER - SANITARY MART*\n\n` +
-        `👤 *Customer Name:* ${nameInput}\n` +
-        `📞 *Phone:* ${phoneInput}\n\n` +
-        `📦 *Order Items:*\n${itemDetailsText}\n` +
-        `💰 *Total Amount:* ₹${totalBill.toLocaleString('en-IN')}\n\n` +
-        `Please confirm my order and share payment details!`;
-
-      window.open(`https://wa.me/919024686665?text=${encodeURIComponent(waMessage)}`, '_blank');
-      
-      clearCart();
-      closeModal('cartModal');
+      const waUrl = `https://wa.me/919024686665?text=${encodeURIComponent(orderText)}`;
+      window.open(waUrl, '_blank');
     };
-
-    window.changeQty = function(index, delta) {
-      const item = cart.find(i => i._index === index);
-      if (item) {
-        item.qty += delta;
-        if (item.qty <= 0) cart = cart.filter(i => i._index !== index);
-        updateCartUI();
-      }
-    };
-
-    window.clearCart = function() {
-      cart = [];
-      updateCartUI();
-    };
-
-    window.openCartModal = function() {
-      updateCartUI();
-      document.getElementById('cartModal').style.display = 'flex';
-    };
-
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      if (toast) {
-        toast.innerText = msg;
-        toast.style.display = 'block';
-        setTimeout(() => { toast.style.display = 'none'; }, 2500);
-      }
-    }
   </script>
 </body>
 </html>
+
 
 
 
