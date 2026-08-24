@@ -182,12 +182,12 @@
 
   <!-- Category Filter Buttons -->
   <div class="flex gap-2 p-3 overflow-x-auto bg-white border-b border-slate-200">
-    <button class="filter-btn active" onclick="filterData('all', this)">All Products <span id="count-all"></span></button>
-    <button class="filter-btn" onclick="filterData('onepiece', this)">One Piece <span id="count-onepiece"></span></button>
-    <button class="filter-btn" onclick="filterData('wallmount', this)">Wall Mount <span id="count-wallmount"></span></button>
-    <button class="filter-btn" onclick="filterData('washbasin', this)">Wash Basin <span id="count-washbasin"></span></button>
-    <button class="filter-btn" onclick="filterData('taps', this)">Taps & Showers <span id="count-taps"></span></button>
-    <button class="filter-btn" onclick="filterData('health', this)">Health Faucets <span id="count-health"></span></button>
+    <button class="filter-btn active" data-category="all" onclick="filterData('all', this)">All Products <span id="count-all"></span></button>
+    <button class="filter-btn" data-category="onepiece" onclick="filterData('onepiece', this)">One Piece <span id="count-onepiece"></span></button>
+    <button class="filter-btn" data-category="wallmount" onclick="filterData('wallmount', this)">Wall Mount <span id="count-wallmount"></span></button>
+    <button class="filter-btn" data-category="washbasin" onclick="filterData('washbasin', this)">Wash Basin <span id="count-washbasin"></span></button>
+    <button class="filter-btn" data-category="taps" onclick="filterData('taps', this)">Taps & Showers <span id="count-taps"></span></button>
+    <button class="filter-btn" data-category="health" onclick="filterData('health', this)">Health Faucets <span id="count-health"></span></button>
   </div>
 
   <!-- 3D Bathroom Design Service Banner Card -->
@@ -296,6 +296,7 @@
     let allProducts = [];
     let cart = [];
     let selectedProduct = null;
+    let selectedCategoryKey = 'all';
 
     function calculatePriceWithDiscount(p) {
       let rawPrice = Number(p.mrp || p.oldPrice || p.originalPrice || p.price || 0);
@@ -318,19 +319,18 @@
       };
     }
 
-    // Helper functions for smart category matching
+    // Strict Category Match Logic
     function isOnePiece(pName, pCat) {
       return pCat.includes('one piece') || pCat.includes('onepiece') || pName.includes('one piece') || pName.includes('onepiece');
     }
 
     function isWallMount(pName, pCat) {
-      return pCat.includes('wall') || pCat.includes('hung') || pCat.includes('mount') || 
-             pName.includes('wall hung') || pName.includes('wall-hung') || pName.includes('wall mount') || pName.includes('wall-mount');
+      return pCat.includes('wall mount') || pCat.includes('wall-mount') || pCat.includes('wall hung') || pCat.includes('wallhung') || pCat.includes('wall-hung') ||
+             pName.includes('wall mount') || pName.includes('wall-mount') || pName.includes('wall hung') || pName.includes('wall-hung');
     }
 
     function isWashBasin(pName, pCat) {
-      return pCat.includes('basin') || pCat.includes('washbasin') || pCat.includes('sink') ||
-             pName.includes('basin') || pName.includes('wash basin') || pName.includes('table top');
+      return pCat.includes('basin') || pCat.includes('washbasin') || pName.includes('basin') || pName.includes('wash basin') || pName.includes('table top');
     }
 
     function isTapsOrShower(pName, pCat) {
@@ -390,7 +390,7 @@
       container.innerHTML = '';
 
       if (!products || products.length === 0) {
-        container.innerHTML = `<p class="col-span-full text-center text-slate-500 py-10">Koi product nahi mila.</p>`;
+        container.innerHTML = `<p class="col-span-full text-center text-slate-500 py-10">Is category me koi product nahi mila.</p>`;
         return;
       }
 
@@ -435,9 +435,6 @@
       
       if (clearBtn) clearBtn.style.display = searchQuery.length > 0 ? 'block' : 'none';
 
-      const activeBtn = document.querySelector('.filter-btn.active');
-      const currentCategory = activeBtn ? activeBtn.innerText.trim().toLowerCase() : 'all';
-
       let filtered = allProducts.filter(p => {
         const pName = (p.name || p.title || p.productName || p.label || '').toLowerCase();
         const pCat = (p.category || p.cat || p.type || '').toLowerCase();
@@ -445,20 +442,18 @@
         const matchesSearch = searchQuery === '' || pName.includes(searchQuery) || pCat.includes(searchQuery);
 
         let matchesCategory = false;
-        if (currentCategory.includes('all')) {
+        if (selectedCategoryKey === 'all') {
           matchesCategory = true;
-        } else if (currentCategory.includes('one piece')) {
+        } else if (selectedCategoryKey === 'onepiece') {
           matchesCategory = isOnePiece(pName, pCat);
-        } else if (currentCategory.includes('wall mount')) {
+        } else if (selectedCategoryKey === 'wallmount') {
           matchesCategory = isWallMount(pName, pCat);
-        } else if (currentCategory.includes('wash basin')) {
+        } else if (selectedCategoryKey === 'washbasin') {
           matchesCategory = isWashBasin(pName, pCat);
-        } else if (currentCategory.includes('taps') || currentCategory.includes('shower')) {
+        } else if (selectedCategoryKey === 'taps') {
           matchesCategory = isTapsOrShower(pName, pCat);
-        } else if (currentCategory.includes('health')) {
+        } else if (selectedCategoryKey === 'health') {
           matchesCategory = isHealthFaucet(pName, pCat);
-        } else {
-          matchesCategory = pCat.includes(currentCategory);
         }
 
         return matchesSearch && matchesCategory;
@@ -472,7 +467,8 @@
       filterAndSort();
     };
 
-    window.filterData = function(category, btn) {
+    window.filterData = function(catKey, btn) {
+      selectedCategoryKey = catKey;
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       filterAndSort();
@@ -614,6 +610,7 @@
   </script>
 </body>
 </html>
+
 
 
 
