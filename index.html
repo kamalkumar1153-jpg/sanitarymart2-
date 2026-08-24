@@ -180,7 +180,7 @@
     </div>
   </div>
 
-  <!-- Category Filter Buttons (Updated Categories) -->
+  <!-- Category Filter Buttons -->
   <div class="flex gap-2 p-3 overflow-x-auto bg-white border-b border-slate-200">
     <button class="filter-btn active" onclick="filterData('all', this)">All Products <span id="count-all"></span></button>
     <button class="filter-btn" onclick="filterData('onepiece', this)">One Piece <span id="count-onepiece"></span></button>
@@ -302,7 +302,7 @@
       if (isNaN(rawPrice) || rawPrice <= 0) rawPrice = 0;
 
       const pCat = (p.category || p.cat || p.type || '').toLowerCase();
-      let discountPercent = Number(p.discount || p.offer || (pCat.includes('tap') || pCat.includes('shower') ? 18 : 30));
+      let discountPercent = Number(p.discount || p.offer || (pCat.includes('tap') || pCat.includes('shower') || pCat.includes('faucet') ? 18 : 30));
 
       if (isNaN(discountPercent) || discountPercent <= 0) {
         discountPercent = 30;
@@ -316,6 +316,30 @@
         finalPrice: finalPrice,
         discountPercent: discountPercent
       };
+    }
+
+    // Helper functions for smart category matching
+    function isOnePiece(pName, pCat) {
+      return pCat.includes('one piece') || pCat.includes('onepiece') || pName.includes('one piece') || pName.includes('onepiece');
+    }
+
+    function isWallMount(pName, pCat) {
+      return pCat.includes('wall') || pCat.includes('hung') || pCat.includes('mount') || 
+             pName.includes('wall hung') || pName.includes('wall-hung') || pName.includes('wall mount') || pName.includes('wall-mount');
+    }
+
+    function isWashBasin(pName, pCat) {
+      return pCat.includes('basin') || pCat.includes('washbasin') || pCat.includes('sink') ||
+             pName.includes('basin') || pName.includes('wash basin') || pName.includes('table top');
+    }
+
+    function isTapsOrShower(pName, pCat) {
+      return pCat.includes('tap') || pCat.includes('shower') || pCat.includes('faucet') || pCat.includes('mixer') || pCat.includes('cock') ||
+             pName.includes('tap') || pName.includes('shower') || pName.includes('faucet') || pName.includes('mixer');
+    }
+
+    function isHealthFaucet(pName, pCat) {
+      return pCat.includes('health') || pName.includes('health');
     }
 
     const productsRef = db.ref('products');
@@ -346,11 +370,11 @@
         const pCat = (p.category || p.cat || p.type || '').toLowerCase();
         const pName = (p.name || p.title || p.productName || p.label || '').toLowerCase();
 
-        if (pCat.includes('one piece') || pCat.includes('onepiece') || pName.includes('one piece')) onePieceCount++;
-        if (pCat.includes('wall mount') || pCat.includes('wall hung') || pCat.includes('wallmount') || pName.includes('wall hung')) wallMountCount++;
-        if (pCat.includes('basin') || pCat.includes('washbasin') || pName.includes('basin')) washBasinCount++;
-        if (pCat.includes('tap') || pCat.includes('shower') || pCat.includes('faucet') || pCat.includes('mixer')) tapsCount++;
-        if (pCat.includes('health')) healthCount++;
+        if (isOnePiece(pName, pCat)) onePieceCount++;
+        if (isWallMount(pName, pCat)) wallMountCount++;
+        if (isWashBasin(pName, pCat)) washBasinCount++;
+        if (isTapsOrShower(pName, pCat)) tapsCount++;
+        if (isHealthFaucet(pName, pCat)) healthCount++;
       });
 
       document.getElementById('count-all').innerText = `(${allProducts.length})`;
@@ -424,15 +448,15 @@
         if (currentCategory.includes('all')) {
           matchesCategory = true;
         } else if (currentCategory.includes('one piece')) {
-          matchesCategory = pCat.includes('one piece') || pCat.includes('onepiece') || pName.includes('one piece');
+          matchesCategory = isOnePiece(pName, pCat);
         } else if (currentCategory.includes('wall mount')) {
-          matchesCategory = pCat.includes('wall mount') || pCat.includes('wall hung') || pCat.includes('wallmount') || pName.includes('wall hung');
+          matchesCategory = isWallMount(pName, pCat);
         } else if (currentCategory.includes('wash basin')) {
-          matchesCategory = pCat.includes('basin') || pCat.includes('washbasin') || pName.includes('basin');
+          matchesCategory = isWashBasin(pName, pCat);
         } else if (currentCategory.includes('taps') || currentCategory.includes('shower')) {
-          matchesCategory = pCat.includes('tap') || pCat.includes('shower') || pCat.includes('faucet') || pCat.includes('mixer');
+          matchesCategory = isTapsOrShower(pName, pCat);
         } else if (currentCategory.includes('health')) {
-          matchesCategory = pCat.includes('health');
+          matchesCategory = isHealthFaucet(pName, pCat);
         } else {
           matchesCategory = pCat.includes(currentCategory);
         }
@@ -590,6 +614,7 @@
   </script>
 </body>
 </html>
+
 
 
 
